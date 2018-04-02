@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "export NODE_ENV=test || SET NODE_ENV=\"test\" && mocha tests/**/*.tests.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +24,9 @@
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
     "log4js": "^2.5.3"
+  },
+  "devDependencies": {
+    "expect": "^22.4.3",
+    "mocha": "^5.0.5"
   }
 }
