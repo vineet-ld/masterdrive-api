@@ -1,0 +1,28 @@
+{
+  "name": "masterdrive-api",
+  "version": "1.0.0",
+  "description": "REST API for master-drive",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vineet-ld/masterdrive-api.git"
+  },
+  "keywords": [
+    "masterdrive"
+  ],
+  "author": "Vineet Dandekar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vineet-ld/masterdrive-api/issues"
+  },
+  "homepage": "https://github.com/vineet-ld/masterdrive-api#readme",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "log4js": "^2.5.3"
+  }
+}
