@@ -3,6 +3,7 @@ require("./config");
 const express = require("express");
 const log4js = require("log4js");
 const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 
 let utils = (() => {
 
@@ -35,6 +36,23 @@ let utils = (() => {
                 logger.level = process.env.LOG_LEVEL;
             }
             return logger;
+        },
+
+        /*
+        * Method to get the instance of Mongoose
+        *
+        * @returns: mongoose - Object
+        * */
+        getMongoose: () => {
+            mongoose.Promise = global.Promise;
+            mongoose.connect(process.env.MONGODB_URL)
+                .then((data) => {
+                    logger.info(`Connected to MongoDB at ${process.env.MONGODB_URL}`)
+                })
+                .catch((error) => {
+                    logger.error(`Error while connecting to MongoDB at ${process.env.MONGODB_URL}`, error);
+                });
+            return mongoose;
         }
 
     };

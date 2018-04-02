@@ -24,10 +24,13 @@ if(env !== "test" && env !== "development") {
         }
     });
 
-    process.env.LOG_LEVEL = "info";
-
 } else {
-    process.env.PORT = 3002;
-    process.env.LOG_LEVEL = "all";
+    require("dotenv").load();
+    if(env === "test") {
+        process.env.MONGODB_URL = process.env.MONGODB_URL_TEST;
+        process.env.LOG_LEVEL = "off";
+    }
 }
+
+
 

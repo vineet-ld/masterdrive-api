@@ -6,7 +6,7 @@ let middleware = (() => {
     return {
 
         logHttpRequest: (request, response, next) => {
-            logger.info(request.method, request.originalUrl, request.body);
+            logger.info(request.method, request.originalUrl, "\n",request.body);
             next();
         }
 

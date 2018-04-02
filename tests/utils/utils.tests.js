@@ -1,4 +1,5 @@
 const expect = require("expect");
+
 const utils = require("./../../utils/utils");
 
 describe("Utils", () => {
@@ -20,9 +21,21 @@ describe("Utils", () => {
 
             let logger = utils.getLogger();
             expect(logger).toBeDefined();
-            expect(logger.level.levelStr).toBe("ALL");
+            expect(logger.level.levelStr).toBe("OFF");
 
         });
+
+    });
+
+    describe("Get Mongoose", () => {
+
+        it("should get an instance of mongoose", () => {
+
+            let mongoose = utils.getMongoose();
+            expect(mongoose).toBeDefined();
+            mongoose.connection.close();
+
+        })
 
     })
 

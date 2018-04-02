@@ -6,6 +6,10 @@ const app = utils.getExpressApp();
 
 app.use(middleware.logHttpRequest);
 
+app.get("/test", (request, response) => {
+    response.send("Server is online");
+});
+
 require("./controllers/user-controller");
 
 /* Setting express to listen to port 3002 */
