@@ -1,4 +1,6 @@
 const validator = require("validator");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 
 const utils = require("./../utils/utils");
 
@@ -9,16 +11,15 @@ let UserSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        minLength: 1,
-        maxLength: 25,
+        minlength: 1,
+        maxlength: 25,
         trim: true
     },
 
     email: {
         type: String,
         required: true,
-        minLength: 1,
-        maxLength: 25,
+        unique: true,
         trim: true,
         validate: {
             validator: (val) => validator.isEmail(val),
@@ -28,14 +29,7 @@ let UserSchema = new mongoose.Schema({
 
     password: {
         type: String,
-        required: true,
-        minLength: 8,
-        maxLength: 25,
-        validate: {
-            validator: (val) => validator.matches(val,
-                /^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9]).{8}$/),
-            message: "{VALUE} is not a valid password"
-        }
+        required: true
     },
 
     createdOn: {
@@ -46,6 +40,79 @@ let UserSchema = new mongoose.Schema({
     modifiedOn: {
         type: Number,
         default: null
+    },
+
+    tokens: [{
+        access: {
+            type: String,
+            required: true
+        },
+        token: {
+            type: String,
+            required: true
+        }
+    }]
+
+});
+
+/*
+* Model method to create an authentication token
+*
+* @return: Promise with the auth token
+* */
+UserSchema.methods.createAuthToken = function() {
+
+    let user = this;
+    let access = "auth";
+    let token = jwt.sign({
+        _id: user._id.toHexString()
+    }, process.env.JWT_SECRET).toString();
+
+    user.tokens.push({access, token});
+
+    return user.save()
+        .then(() => {
+            return token;
+        })
+        .catch((error) => {
+            utils.logError(500, error);
+        })
+
+};
+
+/*
+* Method to encrypt the password before it is saved in the database.
+* The callback function is called before save() method is called on the model instance
+* */
+UserSchema.pre("save", function(next) {
+
+    let user = this;
+
+    if(user.isModified("password")) {
+
+        bcrypt.genSalt(10, (error, salt) => {
+
+            if(error) {
+                utils.logError(500, error);
+            } else {
+
+                bcrypt.hash(user.password, salt, (error, hash) => {
+
+                    if(error) {
+                        utils.logError(500, error);
+                    } else {
+                        user.password = hash;
+                        next();
+                    }
+
+                })
+
+            }
+
+        })
+
+    } else {
+        next();
     }
 
 });

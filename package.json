@@ -21,8 +21,10 @@
   },
   "homepage": "https://github.com/vineet-ld/masterdrive-api#readme",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
+    "jsonwebtoken": "^8.2.0",
     "lodash": "^4.17.5",
     "log4js": "^2.5.3",
     "mongodb": "^3.0.5",

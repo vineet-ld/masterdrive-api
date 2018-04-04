@@ -10,6 +10,12 @@ let utils = (() => {
     let app;
     let logger;
 
+    app = express();
+    app.use(bodyParser.json());
+
+    logger = log4js.getLogger();
+    logger.level = process.env.LOG_LEVEL;
+
     return {
 
         /*
@@ -18,10 +24,6 @@ let utils = (() => {
         * @returns: app - Object
         * */
         getExpressApp: () => {
-            if(!app) {
-                app = express();
-                app.use(bodyParser.json());
-            }
             return app;
         },
 
@@ -31,10 +33,6 @@ let utils = (() => {
         * @returns: logger - Object
         * */
         getLogger: () => {
-            if(!logger) {
-                logger = log4js.getLogger();
-                logger.level = process.env.LOG_LEVEL;
-            }
             return logger;
         },
 
@@ -53,6 +51,41 @@ let utils = (() => {
                     logger.error(`Error while connecting to MongoDB at ${process.env.MONGODB_URL}`, error);
                 });
             return mongoose;
+        },
+
+        /*
+        * Method to log general information
+        *
+        * @params
+        * status: Number - HTTP Status Code
+        * data: Object - HTTP Response Body
+        * */
+        logInfo: (status, data) => {
+            logger.info(`Status: ${status}`, "\n", data);
+        },
+
+        /*
+        * Method to log system and/or user errors
+        *
+        * @params
+        * status: Number - HTTP Status Code
+        * error: Object
+        * */
+        logError: (status, error) => {
+            if(status >= 500) {
+                logger.fatal(`Status: ${status}`, "\n", error);
+            } else {
+                switch(status) {
+                    case 400:
+                        logger.error(`Status: ${status}`, "\n", error);
+                        break;
+
+                    case 409:
+                        logger.warn(`Status: ${status}`, "\n", error);
+                        break;
+                }
+
+            }
         }
 
     };
