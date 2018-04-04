@@ -80,7 +80,7 @@ You should get a response with Status 200 OK and text *Server is online*
 
 Detailed documention is available [here]
 
-[here]: https://github.com/vineet-ld/masterdrive-api/wiki/API-Documentation
+[here]: https://github.com/vineet-ld/masterdrive-api/wiki/Index
 
 ## Latest Release
 
