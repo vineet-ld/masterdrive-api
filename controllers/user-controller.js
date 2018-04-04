@@ -19,7 +19,7 @@ app.post("/user", (request, response) => {
         })
         .then((token) => {
             let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
-            response.header("x-auth", token).send(userResponse);
+            response.header("x-auth", token).status(201).send(userResponse);
             utils.logInfo(201, userResponse);
         })
         .catch((error) => {
