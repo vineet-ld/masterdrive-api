@@ -27,7 +27,7 @@ let exception = function(error) {
 
     let errorResponse = new Error();
 
-    if(error.name === "ValidationError") {
+    if(error && error.name === "ValidationError") {
 
         errorResponse.type = error.name;
         errorResponse.status = 400;
@@ -36,11 +36,17 @@ let exception = function(error) {
             errorResponse.messages.push(err.message);
         });
 
-    } else if(error.name === "BulkWriteError" && error.code === 11000) {
+    } else if(error && error.name === "BulkWriteError" && error.code === 11000) {
 
         errorResponse.type = "DuplicateEntryError";
         errorResponse.status = 409;
         errorResponse.messages.push(error.message);
+
+    } else if(error && error.name === "AuthenticationError") {
+
+        errorResponse.type = "AuthenticationError";
+        errorResponse.status = 401;
+        errorResponse.messages.push("Invalid user credentials");
 
     } else {
 

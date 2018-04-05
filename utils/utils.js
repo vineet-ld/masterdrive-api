@@ -80,6 +80,7 @@ let utils = (() => {
                         logger.error(`Status: ${status}`, "\n", error);
                         break;
 
+                    case 401:
                     case 409:
                         logger.warn(`Status: ${status}`, "\n", error);
                         break;

@@ -11,6 +11,12 @@ const seed = (() => {
 
     return {
 
+        /*
+        * Method to clear the user table
+        *
+        * @params:
+        * done - Callback Fn
+        * */
         clearUsers: (done) => {
             User.remove({})
                 .then(() => {
@@ -21,16 +27,29 @@ const seed = (() => {
                 })
         },
 
-        addUser: (user) => {
-            let objectId = new ObjectID();
-            user._id = objectId;
-            user.createdOn = new Date().getTime();
-            user.tokens = [{
-                access: "auth",
-                token: jwt.sign({_id: objectId}, process.env.JWT_SECRET)
-            }];
-            let userObj = new User(user)
-            userObj.save();
+        /*
+        * Method to add a sample user
+        *
+        * @params:
+        * done - Callback Fn
+        * */
+        addUser: (done) => {
+            let userId = new ObjectID();
+            let user = {
+                _id: userId,
+                name: "Test User",
+                email: "test.user@test.com",
+                password: "123456",
+                createdOn: new Date().getTime(),
+                tokens: [{
+                    access: "auth",
+                    token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
+                }]
+            };
+            let userObj = new User(user);
+            userObj.save()
+                .then(() => done())
+                .catch((error) => done());
         }
 
     };

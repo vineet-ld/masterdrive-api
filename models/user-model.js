@@ -81,6 +81,43 @@ UserSchema.methods.createAuthToken = function() {
 };
 
 /*
+* Schema method to get user by its credentials
+*
+* @params:
+* email - String
+* password - String
+*
+* @returns:
+* Promise with user object
+*
+* @throws:
+* AuthenticationError
+* */
+UserSchema.statics.findByCredentials = function(email, password) {
+
+    var User = this;
+
+    return User.findOne({email})
+        .then((user) => {
+            if(!user) {
+                return Promise.reject({name: "AuthenticationError"});
+            }
+            return new Promise((resolve, reject) => {
+
+                bcrypt.compare(password, user.password, (error, result) => {
+                    if(result) {
+                        resolve(user);
+                    } else {
+                        reject({name: "AuthenticationError"});
+                    }
+                });
+
+            });
+        });
+
+};
+
+/*
 * Method to encrypt the password before it is saved in the database.
 * The callback function is called before save() method is called on the model instance
 * */
