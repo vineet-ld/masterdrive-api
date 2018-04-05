@@ -1,6 +1,7 @@
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const _ = require("lodash");
 
 const utils = require("./../utils/utils");
 
@@ -34,7 +35,7 @@ let UserSchema = new mongoose.Schema({
 
     createdOn: {
         type: Number,
-        default: new Date().getTime()
+        default: _.now()
     },
 
     modifiedOn: {

@@ -1,5 +1,6 @@
 const {ObjectID} = require("mongodb");
 const jwt = require("jsonwebtoken");
+const _ = require("lodash");
 
 const User = require("./../models/user-model");
 const utils = require("./../utils/utils");
@@ -16,7 +17,7 @@ const seed = (() => {
         name: "Test User",
         email: "test.user@test.com",
         password: "123456",
-        createdOn: new Date().getTime(),
+        createdOn: _.now(),
         tokens: [{
             access: "auth",
             token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
