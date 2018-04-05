@@ -9,6 +9,20 @@ const mongoose = utils.getMongoose();
 
 const seed = (() => {
 
+    let userId = new ObjectID();
+
+    let user = {
+        _id: userId,
+        name: "Test User",
+        email: "test.user@test.com",
+        password: "123456",
+        createdOn: new Date().getTime(),
+        tokens: [{
+            access: "auth",
+            token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
+        }]
+    };
+
     return {
 
         /*
@@ -34,22 +48,19 @@ const seed = (() => {
         * done - Callback Fn
         * */
         addUser: (done) => {
-            let userId = new ObjectID();
-            let user = {
-                _id: userId,
-                name: "Test User",
-                email: "test.user@test.com",
-                password: "123456",
-                createdOn: new Date().getTime(),
-                tokens: [{
-                    access: "auth",
-                    token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
-                }]
-            };
             let userObj = new User(user);
             userObj.save()
                 .then(() => done())
                 .catch((error) => done());
+        },
+
+        /* Method to get the user
+        *
+        * @returns:
+        * user - Object
+        * */
+        getUser: () => {
+            return user;
         }
 
     };

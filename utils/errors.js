@@ -42,11 +42,17 @@ let exception = function(error) {
         errorResponse.status = 409;
         errorResponse.messages.push(error.message);
 
-    } else if(error && error.name === "AuthenticationError") {
+    } else if(error && (error.name === "AuthenticationError" || error.name === "JsonWebTokenError")) {
 
         errorResponse.type = "AuthenticationError";
         errorResponse.status = 401;
-        errorResponse.messages.push("Invalid user credentials");
+        errorResponse.messages.push(error.message || "Invalid user credentials");
+
+    } else if(error && error.name === "ResourceNotFoundError") {
+
+        errorResponse.type = "ResourceNotFoundError";
+        errorResponse.status = 404;
+        errorResponse.messages.push("Cannot find the requested resource");
 
     } else {
 

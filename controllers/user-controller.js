@@ -18,9 +18,7 @@ const logger = utils.getLogger();
 *
 * @returns:
 * user - Object
-*
-* @headers:
-* x-auth - String
+* @headers: x-auth - String
 *
 * @throws:
 * ValidationError
@@ -56,9 +54,7 @@ app.post("/user", (request, response) => {
 *
 * @returns
 * user - Object
-*
-* @header:
-* x-auth - String
+* @header: x-auth - String
 *
 * @throws
 * ValidationError
@@ -110,8 +106,24 @@ app.post("/user/login", (request, response) => {
 
     }
 
+});
 
-
+/*
+* Get logged in user
+*
+* @params:
+* @header: x-auth - String
+*
+* @returns
+* user - Object
+*
+* @throws
+* AuthenticationError
+* */
+app.get("/user/me", middleware.authenticate, (request, response) => {
+    let userResponse = _.pick(request.user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
+    response.send(userResponse);
+    utils.logInfo(200, userResponse);
 });
 
 

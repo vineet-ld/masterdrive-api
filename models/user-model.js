@@ -95,7 +95,7 @@ UserSchema.methods.createAuthToken = function() {
 * */
 UserSchema.statics.findByCredentials = function(email, password) {
 
-    var User = this;
+    let User = this;
 
     return User.findOne({email})
         .then((user) => {
@@ -113,7 +113,35 @@ UserSchema.statics.findByCredentials = function(email, password) {
                 });
 
             });
-        });
+        })
+
+};
+
+/*
+* Schema method to get user by auth token
+*
+* @params:
+* token - String
+*
+* @returns:
+* Promise with user object
+* */
+UserSchema.statics.findByToken = function(token) {
+
+    let User = this;
+    let decoded;
+
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch(error) {
+        return Promise.reject(error);
+    }
+
+    return User.findOne({
+        _id: decoded._id,
+        "tokens.token": token,
+        "tokens.access": "auth"
+    });
 
 };
 

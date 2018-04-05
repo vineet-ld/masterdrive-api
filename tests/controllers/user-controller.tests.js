@@ -165,7 +165,7 @@ describe("User Controller", () => {
                     expect(user.tokens).toBeUndefined();
                     expect(response.headers["x-auth"]).toBeDefined();
                 })
-                .end((error) => {
+                .end((error, response) => {
                     if(error) {
                         return done(error);
                     }
@@ -173,6 +173,10 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).toBeDefined();
                             expect(user.tokens.length).toBe(2);
+                            expect(user.tokens[1]).toMatchObject({
+                                access: "auth",
+                                token: response.headers["x-auth"]
+                            });
                             done();
                         })
                         .catch((error) => {
@@ -226,5 +230,56 @@ describe("User Controller", () => {
         })
 
     });
+
+    describe("GET /user/me", () => {
+
+        it("should return the logged in user", (done) => {
+
+            let userObj = seed.getUser();
+
+            request(app).get("/user/me")
+                .set("x-auth", userObj.tokens[0].token)
+                .expect(200)
+                .expect((response) => {
+                    let user = response.body;
+                    expect(user._id).toBeDefined();
+                    expect(user.name).toBe(userObj.name);
+                    expect(user.email).toBe(userObj.email);
+                    expect(typeof user.createdOn).toBe("number");
+                    expect(user.modifiedOn).toBeNull();
+                    expect(user.password).toBeUndefined();
+                    expect(user.tokens).toBeUndefined();
+                })
+                .end(done);
+
+        });
+
+        it("should return a 401 if the auth token is invalid", (done) => {
+
+            request(app).get("/user/me")
+                .set("x-auth", "invalidauthtoken")
+                .expect(401)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("AuthenticationError");
+                })
+                .end(done);
+
+        });
+
+        it("should return a 401 if the auth token is absent", (done) => {
+
+            request(app).get("/user/me")
+                .send()
+                .expect(401)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("AuthenticationError");
+                })
+                .end(done);
+
+        })
+
+    })
 
 });
