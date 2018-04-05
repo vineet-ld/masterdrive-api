@@ -51,8 +51,8 @@ describe("User Controller", () => {
                         })
                         .catch((error) => {
                             done(error);
-                        })
-                })
+                        });
+                });
 
         });
 
@@ -84,7 +84,7 @@ describe("User Controller", () => {
                         .catch((error) => {
                             done(error);
                         })
-                })
+                });
 
         });
 
@@ -117,7 +117,7 @@ describe("User Controller", () => {
                         .catch((error) => {
                             done(error);
                         })
-                })
+                });
 
         });
 
@@ -227,7 +227,7 @@ describe("User Controller", () => {
                 })
                 .end(done);
 
-        })
+        });
 
     });
 
@@ -242,7 +242,7 @@ describe("User Controller", () => {
                 .expect(200)
                 .expect((response) => {
                     let user = response.body;
-                    expect(user._id).toBeDefined();
+                    expect(user._id).toBe(userObj._id.toHexString());
                     expect(user.name).toBe(userObj.name);
                     expect(user.email).toBe(userObj.email);
                     expect(typeof user.createdOn).toBe("number");
@@ -278,8 +278,98 @@ describe("User Controller", () => {
                 })
                 .end(done);
 
+        });
+
+    });
+
+    describe("PUT /user", () => {
+
+        it("should update name and password of the user", (done) => {
+
+            let newDetails = {
+                name: "Changed name",
+                password: "New Password"
+            };
+
+            let oldUser = seed.getUser();
+
+            request(app).put("/user")
+                .send(newDetails)
+                .set("x-auth", oldUser.tokens[0].token)
+                .expect(200)
+                .expect((response) => {
+                    let user = response.body;
+                    expect(user._id).toBe(oldUser._id.toHexString());
+                    expect(user.name).toBe(newDetails.name);
+                    expect(user.email).toBe(oldUser.email);
+                    expect(typeof user.createdOn).toBe("number");
+                    expect(typeof user.modifiedOn).toBe("number");
+                    expect(user.password).toBeUndefined();
+                    expect(user.tokens).toBeUndefined();
+                })
+                .end((error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findByCredentials(oldUser.email, newDetails.password)
+                        .then((user) => {
+                            expect(user).toBeDefined();
+                            expect(user.name).toBe(newDetails.name);
+                            done();
+                        })
+                        .catch((error) => {
+                            done(error);
+                        });
+                });
+
+        });
+
+        it("should return 304 when name and password are absent", (done) => {
+
+            request(app).put("/user")
+                .set("x-auth", seed.getUser().tokens[0].token)
+                .expect(304)
+                .expect((response) => {
+                    expect(response.body).toMatchObject({});
+                })
+                .end(done);
+
+        });
+
+        it("should return 400 if name is longer than 25 characters", (done) => {
+
+            let newDetails = {
+                name: "Name which is more than twenty five characters long",
+                password: "New Password"
+            };
+
+            let oldUser = seed.getUser();
+
+            request(app).put("/user")
+                .send(newDetails)
+                .set("x-auth", seed.getUser().tokens[0].token)
+                .expect(400)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("ValidationError");
+                })
+                .end((error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findByCredentials(oldUser.email, oldUser.password)
+                        .then((user) => {
+                            expect(user).toBeDefined();
+                            expect(user.name).toBe(oldUser.name);
+                            done();
+                        })
+                        .catch((error) => {
+                            done(error);
+                        });
+                });
+
         })
 
-    })
+    });
 
 });

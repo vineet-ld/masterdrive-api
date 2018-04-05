@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const {ObjectID} = require("mongodb");
 
 const utils = require("./../utils/utils");
 const User = require("./../models/user-model");
@@ -126,5 +127,53 @@ app.get("/user/me", middleware.authenticate, (request, response) => {
     utils.logInfo(200, userResponse);
 });
 
+/*
+* Update the user info
+*
+* @params:
+* name - String
+* password - String
+* @headers: x-auth - String
+*
+* @returns
+* user - Object
+*
+* @throws
+* AuthenticationError
+* ValidationError
+* */
+app.put("/user", middleware.authenticate, (request, response) => {
+
+    let requestBody = _.pick(request.body, ["name", "password"]);
+
+    if(_.toPairs(requestBody).length > 0) {
+
+        if(requestBody.name) {
+            request.user.name = requestBody.name;
+        }
+
+        if(requestBody.password) {
+            request.user.password = requestBody.password;
+        }
+
+        request.user.modifiedOn = _.now();
+
+        request.user.save()
+            .then((user) => {
+                let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
+                response.send(userResponse);
+                utils.logInfo(200, userResponse);
+            })
+            .catch((error) => {
+                let errorResponse = exception(error);
+                response.status(errorResponse.status).send(errorResponse);
+            })
+
+    } else {
+        response.status(304).send();
+        utils.logInfo(304);
+    }
+
+});
 
 
