@@ -170,8 +170,8 @@ describe("User Controller", () => {
                     User.findOne({email: "test.user@test.com"})
                         .then((user) => {
                             expect(user).toBeDefined();
-                            expect(user.tokens.length).toBe(2);
-                            expect(user.tokens[1]).toMatchObject({
+                            expect(user.tokens.length).toBe(3);
+                            expect(user.tokens[2]).toMatchObject({
                                 access: "auth",
                                 token: response.headers["x-auth"]
                             });
@@ -202,7 +202,7 @@ describe("User Controller", () => {
                     User.findOne({email: "test.user@test.com"})
                         .then((user) => {
                             expect(user).toBeDefined();
-                            expect(user.tokens.length).toBe(1);
+                            expect(user.tokens.length).toBe(2);
                             done();
                         })
                         .catch((error) => done(error));
@@ -356,7 +356,7 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).toBeDefined();
                             expect(user.name).toBe(newDetails.name);
-                            expect(user.tokens.length).toBe(1);
+                            expect(user.tokens.length).toBe(2);
                             expect(user.tokens[0]).toMatchObject({
                                 token: oldUser.tokens[0].token,
                                 access: "auth"
@@ -440,6 +440,35 @@ describe("User Controller", () => {
             let user = seed.getUser();
 
             request(app).delete("/user/logout")
+                .set("x-auth", user.tokens[0].token)
+                .expect(204)
+                .expect((response) => {
+                    expect(response.body).toEqual({});
+                })
+                .end((error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findById(user._id)
+                        .then((userRes) => {
+                            expect(userRes.tokens.length).toBe(1);
+                            expect(userRes.tokens[0].token).not.toBe(user.tokens[0].token);
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
+
+        });
+
+    });
+
+    describe("DELETE /user/logout/all", () => {
+
+        it("should delete all tokens for the user", (done) => {
+
+            let user = seed.getUser();
+
+            request(app).delete("/user/logout/all")
                 .set("x-auth", user.tokens[0].token)
                 .expect(204)
                 .expect((response) => {

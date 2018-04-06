@@ -228,4 +228,26 @@ app.delete("/user/logout", middleware.authenticate, (request, response) => {
 
 });
 
+/*
+* Delete all auth tokens and logout user from all deveices
+*
+* @params:
+* @headers: x-auth - String
+*
+* @throws:
+* AuthenticationError
+* */
+app.delete("/user/logout/all", middleware.authenticate, (request, response) => {
+
+    request.user.removeAuthTokens()
+        .then(() => {
+            response.status(204).send();
+        })
+        .catch((error) => {
+            let errorResponse = exception(error);
+            response.status(errorResponse.status).send(errorResponse);
+        })
+
+});
+
 

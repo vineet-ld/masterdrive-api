@@ -21,6 +21,9 @@ const seed = (() => {
         tokens: [{
             access: "auth",
             token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
+        }, {
+            access: "auth",
+            token: jwt.sign({_id: new ObjectID()}, process.env.JWT_SECRET)
         }]
     };
 
