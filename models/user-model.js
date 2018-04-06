@@ -97,6 +97,26 @@ UserSchema.methods.removeAuthTokens = function() {
 };
 
 /*
+* Model method to delete a token
+*
+* @params:
+* token - String
+*
+* @returns:
+* Promise
+* */
+UserSchema.methods.removeAuthToken = function(token) {
+
+    let user = this;
+    return user.update({
+        $pull: {
+            tokens: {token}
+        }
+    });
+
+};
+
+/*
 * Schema method to get user by its credentials
 *
 * @params:

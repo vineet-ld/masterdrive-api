@@ -206,4 +206,26 @@ app.put("/user", middleware.authenticate, (request, response) => {
 
 });
 
+/*
+* Delete the auth token and logout the user
+*
+* @params:
+* @headers: x-auth - String
+*
+* @throws:
+* AuthenticationError
+* */
+app.delete("/user/logout", middleware.authenticate, (request, response) => {
+
+    request.user.removeAuthToken(request.token)
+        .then(() => {
+            response.status(204).send();
+        })
+        .catch((error) => {
+            let errorResponse = exception(error);
+            response.status(errorResponse.status).send(errorResponse);
+        })
+
+});
+
 

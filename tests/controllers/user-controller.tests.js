@@ -53,9 +53,7 @@ describe("User Controller", () => {
                             });
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        });
+                        .catch((error) => done(error));
                 });
 
         });
@@ -85,9 +83,7 @@ describe("User Controller", () => {
                             expect(user).toBeNull();
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        })
+                        .catch((error) => done(error));
                 });
 
         });
@@ -118,9 +114,7 @@ describe("User Controller", () => {
                             expect(user).toBeNull();
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        })
+                        .catch((error) => done(error));
                 });
 
         });
@@ -183,9 +177,7 @@ describe("User Controller", () => {
                             });
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        });
+                        .catch((error) => done(error));
                 });
 
         });
@@ -213,6 +205,7 @@ describe("User Controller", () => {
                             expect(user.tokens.length).toBe(1);
                             done();
                         })
+                        .catch((error) => done(error));
                 });
 
         });
@@ -327,9 +320,7 @@ describe("User Controller", () => {
                             });
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        });
+                        .catch((error) => done(error));
                 });
 
         });
@@ -372,9 +363,7 @@ describe("User Controller", () => {
                             });
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        });
+                        .catch((error) => done(error));
                 });
 
         });
@@ -437,12 +426,38 @@ describe("User Controller", () => {
                             expect(user.name).toBe(oldUser.name);
                             done();
                         })
-                        .catch((error) => {
-                            done(error);
-                        });
+                        .catch((error) => done(error));
                 });
 
         })
+
+    });
+
+    describe("DELETE /user/logout", () => {
+
+        it("should delete the sent token", (done) => {
+
+            let user = seed.getUser();
+
+            request(app).delete("/user/logout")
+                .set("x-auth", user.tokens[0].token)
+                .expect(204)
+                .expect((response) => {
+                    expect(response.body).toEqual({});
+                })
+                .end((error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findById(user._id)
+                        .then((user) => {
+                            expect(user.tokens.length).toBe(0);
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
+
+        });
 
     });
 
