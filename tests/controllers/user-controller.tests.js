@@ -38,7 +38,7 @@ describe("User Controller", () => {
                     expect(user.tokens).toBeUndefined();
                     expect(response.headers["x-auth"]).toBeDefined();
                 })
-                .end((error) => {
+                .end((error, response) => {
                     if(error) {
                         return done(error);
                     }
@@ -47,6 +47,10 @@ describe("User Controller", () => {
                             expect(user).toBeDefined();
                             expect(user.password).not.toBe(data.password);
                             expect(user.tokens.length).toBe(1);
+                            expect(user.tokens[0]).toMatchObject({
+                                access: "auth",
+                                token: response.headers["x-auth"]
+                            });
                             done();
                         })
                         .catch((error) => {
