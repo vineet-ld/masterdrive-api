@@ -306,8 +306,9 @@ describe("User Controller", () => {
                     expect(typeof user.modifiedOn).toBe("number");
                     expect(user.password).toBeUndefined();
                     expect(user.tokens).toBeUndefined();
+                    expect(response.headers["x-auth"]).not.toBe(oldUser.tokens[0].token);
                 })
-                .end((error) => {
+                .end((error, response) => {
                     if(error) {
                         return done(error);
                     }
@@ -315,6 +316,11 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).toBeDefined();
                             expect(user.name).toBe(newDetails.name);
+                            expect(user.tokens.length).toBe(1);
+                            expect(user.tokens[0]).toMatchObject({
+                                token: response.headers["x-auth"],
+                                access: "auth"
+                            });
                             done();
                         })
                         .catch((error) => {
@@ -324,13 +330,77 @@ describe("User Controller", () => {
 
         });
 
-        it("should return 304 when name and password are absent", (done) => {
+        it("should update name and return same auth token", (done) => {
+
+            let newDetails = {
+                name: "Changed name"
+            };
+
+            let oldUser = seed.getUser();
+
+            request(app).put("/user")
+                .send(newDetails)
+                .set("x-auth", oldUser.tokens[0].token)
+                .expect(200)
+                .expect((response) => {
+                    let user = response.body;
+                    expect(user._id).toBe(oldUser._id.toHexString());
+                    expect(user.name).toBe(newDetails.name);
+                    expect(user.email).toBe(oldUser.email);
+                    expect(typeof user.createdOn).toBe("number");
+                    expect(typeof user.modifiedOn).toBe("number");
+                    expect(user.password).toBeUndefined();
+                    expect(user.tokens).toBeUndefined();
+                    expect(response.headers["x-auth"]).toBe(oldUser.tokens[0].token);
+                })
+                .end((error, response) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findByCredentials(oldUser.email, oldUser.password)
+                        .then((user) => {
+                            expect(user).toBeDefined();
+                            expect(user.name).toBe(newDetails.name);
+                            expect(user.tokens.length).toBe(1);
+                            expect(user.tokens[0]).toMatchObject({
+                                token: oldUser.tokens[0].token,
+                                access: "auth"
+                            });
+                            done();
+                        })
+                        .catch((error) => {
+                            done(error);
+                        });
+                });
+
+        });
+
+        it("should return 304 if unmodified parameter values are sent", (done) => {
+
+            let oldUser = seed.getUser();
+
+            let newDetails = {
+                name: oldUser.name
+            };
+
+            request(app).put("/user")
+                .send(newDetails)
+                .set("x-auth", oldUser.tokens[0].token)
+                .expect(304)
+                .expect((response) => {
+                    expect(response.body).toEqual({});
+                })
+                .end(done);
+
+        });
+
+        it("should return 400 when name and password are absent", (done) => {
 
             request(app).put("/user")
                 .set("x-auth", seed.getUser().tokens[0].token)
-                .expect(304)
+                .expect(400)
                 .expect((response) => {
-                    expect(response.body).toMatchObject({});
+                    expect(response.body.type).toBe("ValidationError");
                 })
                 .end(done);
 

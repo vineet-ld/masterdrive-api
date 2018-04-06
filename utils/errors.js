@@ -36,6 +36,10 @@ let exception = function(error) {
             errorResponse.messages.push(err.message);
         });
 
+        if(error.message) {
+            errorResponse.messages.push(error.message);
+        }
+
     } else if(error && error.name === "BulkWriteError" && error.code === 11000) {
 
         errorResponse.type = "DuplicateEntryError";

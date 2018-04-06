@@ -82,6 +82,21 @@ UserSchema.methods.createAuthToken = function() {
 };
 
 /*
+* Model method to remove all auth tokens for the user
+*
+* @returns:
+* Promise with user object
+* */
+UserSchema.methods.removeAuthTokens = function() {
+
+    let user = this;
+    user.tokens = user.tokens.filter((tokenObj) => tokenObj.access !== "auth");
+
+    return user.save();
+
+};
+
+/*
 * Schema method to get user by its credentials
 *
 * @params:
