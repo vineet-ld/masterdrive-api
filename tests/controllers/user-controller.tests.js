@@ -44,7 +44,7 @@ describe("User Controller", () => {
                     }
                     User.findOne({email: data.email})
                         .then((user) => {
-                            expect(user).toBeDefined();
+                            expect(user).not.toBeNull();
                             expect(user.password).not.toBe(data.password);
                             expect(user.tokens.length).toBe(1);
                             expect(user.tokens[0]).toMatchObject({
@@ -92,7 +92,7 @@ describe("User Controller", () => {
 
             let data = {
                 name: "New Test User",
-                email: "inavlid.email",
+                email: "invalid.email",
                 password: "123456"
             };
 
@@ -170,8 +170,8 @@ describe("User Controller", () => {
                     User.findOne({email: "test.user@test.com"})
                         .then((user) => {
                             expect(user).toBeDefined();
-                            expect(user.tokens.length).toBe(3);
-                            expect(user.tokens[2]).toMatchObject({
+                            expect(user.tokens.length).toBe(5);
+                            expect(user.tokens[4]).toMatchObject({
                                 access: "auth",
                                 token: response.headers["x-auth"]
                             });
@@ -202,7 +202,7 @@ describe("User Controller", () => {
                     User.findOne({email: "test.user@test.com"})
                         .then((user) => {
                             expect(user).toBeDefined();
-                            expect(user.tokens.length).toBe(2);
+                            expect(user.tokens.length).toBe(4);
                             done();
                         })
                         .catch((error) => done(error));
@@ -303,6 +303,7 @@ describe("User Controller", () => {
                     expect(typeof user.modifiedOn).toBe("number");
                     expect(user.password).toBeUndefined();
                     expect(user.tokens).toBeUndefined();
+                    expect(response.headers["x-auth"]).toBeDefined();
                     expect(response.headers["x-auth"]).not.toBe(oldUser.tokens[0].token);
                 })
                 .end((error, response) => {
@@ -311,10 +312,10 @@ describe("User Controller", () => {
                     }
                     User.findByCredentials(oldUser.email, newDetails.password)
                         .then((user) => {
-                            expect(user).toBeDefined();
+                            expect(user).not.toBeNull();
                             expect(user.name).toBe(newDetails.name);
-                            expect(user.tokens.length).toBe(1);
-                            expect(user.tokens[0]).toMatchObject({
+                            expect(user.tokens.length).toBe(3);
+                            expect(user.tokens[2]).toMatchObject({
                                 token: response.headers["x-auth"],
                                 access: "auth"
                             });
@@ -354,9 +355,9 @@ describe("User Controller", () => {
                     }
                     User.findByCredentials(oldUser.email, oldUser.password)
                         .then((user) => {
-                            expect(user).toBeDefined();
+                            expect(user).not.toBeNull();
                             expect(user.name).toBe(newDetails.name);
-                            expect(user.tokens.length).toBe(2);
+                            expect(user.tokens.length).toBe(4);
                             expect(user.tokens[0]).toMatchObject({
                                 token: oldUser.tokens[0].token,
                                 access: "auth"
@@ -383,7 +384,23 @@ describe("User Controller", () => {
                 .expect((response) => {
                     expect(response.body).toEqual({});
                 })
-                .end(done);
+                .end((error, response) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findByCredentials(oldUser.email, oldUser.password)
+                        .then((user) => {
+                            expect(user).not.toBeNull();
+                            expect(user.name).toBe(oldUser.name);
+                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens[0]).toMatchObject({
+                                token: oldUser.tokens[0].token,
+                                access: "auth"
+                            });
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
 
         });
 
@@ -422,8 +439,13 @@ describe("User Controller", () => {
                     }
                     User.findByCredentials(oldUser.email, oldUser.password)
                         .then((user) => {
-                            expect(user).toBeDefined();
+                            expect(user).not.toBeNull();
                             expect(user.name).toBe(oldUser.name);
+                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens[0]).toMatchObject({
+                                token: oldUser.tokens[0].token,
+                                access: "auth"
+                            });
                             done();
                         })
                         .catch((error) => done(error));
@@ -451,8 +473,11 @@ describe("User Controller", () => {
                     }
                     User.findById(user._id)
                         .then((userRes) => {
-                            expect(userRes.tokens.length).toBe(1);
-                            expect(userRes.tokens[0].token).not.toBe(user.tokens[0].token);
+                            expect(userRes.tokens.length).toBe(3);
+                            expect(userRes.tokens[0]).not.toMatchObject({
+                                token: user.tokens[0].token,
+                                access: "auth"
+                            });
                             done();
                         })
                         .catch((error) => done(error));
@@ -480,11 +505,213 @@ describe("User Controller", () => {
                     }
                     User.findById(user._id)
                         .then((user) => {
-                            expect(user.tokens.length).toBe(0);
+                            expect(user.tokens.length).toBe(2);
                             done();
                         })
                         .catch((error) => done(error));
                 });
+
+        });
+
+    });
+
+    describe("POST /user/password/reset/init", () => {
+
+        it("should generate a temp token", (done) => {
+
+            let user = seed.getUser();
+
+            request(app).post("/user/password/reset/init")
+                .send({email: user.email})
+                .expect(202)
+                .expect((response) => {
+                    expect(response.body).toEqual({});
+                })
+                .end((error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findById(user._id)
+                        .then((user) => {
+                            expect(user.tokens.length).toBe(5);
+                            expect(user.tokens[4].access).toBe("temp");
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
+        });
+
+        it("should return 400 status if email is missing", (done) => {
+
+            request(app).post("/user/password/reset/init")
+                .send()
+                .expect(400)
+                .expect((response) => {
+                    expect(response.body.type).toBe("ValidationError");
+                })
+                .end(done);
+
+        });
+
+        it("should return 404 status if user with the sent email does not exist", (done) => {
+
+            request(app).post("/user/password/reset/init")
+                .send({email: "doesnotexist@test.com"})
+                .expect(404)
+                .expect((response) => {
+                    expect(response.body.type).toBe("ResourceNotFoundError");
+                })
+                .end(done);
+
+        });
+
+    });
+
+    describe("GET /user/password/reset/token", () => {
+
+        it("should return a reset token", (done) => {
+
+            let user = seed.getUser();
+
+            request(app).get("/user/password/reset/token")
+                .set("x-code", user.tokens[2].token)
+                .expect(200)
+                .expect((response) => {
+                    expect(response.headers["x-reset"]).toBeDefined();
+                    expect(response.body).toEqual({});
+                })
+                .end((error, response) =>{
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findById(user._id)
+                        .then((user) => {
+                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens[2].access).not.toBe("temp");
+                            expect(user.tokens[3]).toMatchObject({
+                                token: response.headers["x-reset"],
+                                access: "reset"
+                            });
+                            done();
+                        })
+                        .catch((error) => done(error));
+                })
+
+        });
+
+        it("should return a 401 status if temp token is invalid", (done) => {
+
+            request(app).get("/user/password/reset/token")
+                .set("x-code", "Invalid temp token")
+                .expect(401)
+                .expect((response) => {
+                    expect(response.body.type).toBe("AuthenticationError");
+                })
+                .end(done);
+        });
+
+        it("should return a 401 status if temp token is not present", (done) => {
+
+            request(app).get("/user/password/reset/token")
+                .send()
+                .expect(401)
+                .expect((response) => {
+                    expect(response.body.type).toBe("AuthenticationError");
+                })
+                .end(done);
+        });
+
+    });
+
+    describe("PUT /user/password/reset", () => {
+
+        it("should update the password", (done) => {
+
+            let oldUser = seed.getUser();
+
+            request(app).put("/user/password/reset")
+                .send({password: "changedpassword"})
+                .set("x-reset", oldUser.tokens[3].token)
+                .expect(200)
+                .expect((response) => {
+                    let user = response.body;
+                    expect(user._id).toBe(oldUser._id.toHexString());
+                    expect(user.name).toBe(oldUser.name);
+                    expect(user.email).toBe(oldUser.email);
+                    expect(typeof user.createdOn).toBe("number");
+                    expect(typeof user.modifiedOn).toBe("number");
+                    expect(user.password).toBeUndefined();
+                    expect(user.tokens).toBeUndefined();
+                    expect(response.headers["x-auth"]).toBeDefined();
+                })
+                .end((error, response) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findByCredentials(oldUser.email, "changedpassword")
+                        .then((user) => {
+                            expect(user).not.toBeNull();
+                            expect(user.tokens.length).toBe(1);
+                            expect(user.tokens[0]).toMatchObject({
+                                token: response.headers["x-auth"],
+                                access: "auth"
+                            });
+                            expect(user.password).not.toBe("changedpassword");
+                            done();
+                        })
+                        .catch((error) => done(error));
+                })
+
+        });
+
+        it("should return 400 status for absent password field", (done) => {
+
+            let user = seed.getUser();
+
+            request(app).put("/user/password/reset")
+                .set("x-reset", user.tokens[3].token)
+                .expect(400)
+                .expect((response) => {
+                    expect(response.body.type).toBe("ValidationError");
+                })
+                .end((error, response) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findByCredentials(user.email, user.password)
+                        .then((user) => {
+                            expect(user).not.toBeNull();
+                            expect(user.tokens.length).toBe(4);
+                            expect(user.password).toBeDefined();
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
+
+        });
+
+        it("should return 401 status for invalid reset token", (done) => {
+
+            request(app).put("/user/password/reset")
+                .send({password: "changedpassword"})
+                .set("x-reset", "invalidresettoken")
+                .expect(401)
+                .expect((response) => {
+                    expect(response.body.type).toBe("AuthenticationError");
+                })
+                .end(done);
+
+        });
+
+        it("should return 401 status for absent reset token", (done) => {
+
+            request(app).put("/user/password/reset")
+                .send({password: "changedpassword"})
+                .expect(401)
+                .expect((response) => {
+                    expect(response.body.type).toBe("AuthenticationError");
+                })
+                .end(done);
 
         });
 

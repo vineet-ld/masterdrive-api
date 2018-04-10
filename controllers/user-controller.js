@@ -32,7 +32,7 @@ app.post("/user", (request, response) => {
 
     user.save()
         .then((user) => {
-            return user.createAuthToken();
+            return user.createToken("auth");
         })
         .then((token) => {
             let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
@@ -93,7 +93,7 @@ app.post("/user/login", (request, response) => {
         User.findByCredentials(requestBody.email, requestBody.password)
             .then((userObj) => {
                 user = userObj;
-                return user.createAuthToken();
+                return user.createToken("auth");
             })
             .then((token) => {
                 let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
@@ -167,7 +167,7 @@ app.put("/user", middleware.authenticate, (request, response) => {
                     if(requestBody.password) {
                         user.removeAuthTokens()
                             .then((user) => {
-                                return user.createAuthToken();
+                                return user.createToken("auth");
                             })
                             .then((token) => {
                                 request.token = token;
@@ -220,6 +220,7 @@ app.delete("/user/logout", middleware.authenticate, (request, response) => {
     request.user.removeAuthToken(request.token)
         .then(() => {
             response.status(204).send();
+            utils.logInfo(204);
         })
         .catch((error) => {
             let errorResponse = exception(error);
@@ -242,11 +243,121 @@ app.delete("/user/logout/all", middleware.authenticate, (request, response) => {
     request.user.removeAuthTokens()
         .then(() => {
             response.status(204).send();
+            utils.logInfo(204);
         })
         .catch((error) => {
             let errorResponse = exception(error);
             response.status(errorResponse.status).send(errorResponse);
         })
+
+});
+
+/*
+* Initiate password reset by creating a temporary token
+*
+* @params:
+* email - String
+*
+* @throws:
+* ValidationError
+* ResourceNotFoundError
+* */
+app.post("/user/password/reset/init", (request, response) => {
+
+    let email = request.body.email;
+
+    if(email) {
+
+        User.findOne({email})
+            .then((user) => {
+                if(!user) {
+                    return Promise.reject({
+                        name: "ResourceNotFoundError"
+                    });
+                }
+                user.createToken("temp")
+                    .then((token) => {
+                        response.status(202).send();
+                        utils.logInfo(202);
+                    })
+            })
+            .catch((error) => {
+                let errorResponse = exception(error);
+                response.status(errorResponse.status).send(errorResponse);
+            })
+
+    } else {
+        let errorResponse = exception({
+            name: "ValidationError",
+            message: "path 'email' is required"
+        });
+        response.status(errorResponse.status).send(errorResponse);
+    }
+
+});
+
+/*
+* Get the password reset token
+*
+* @params:
+* @headers: x-code - String
+*
+* @returns:
+* @headers: x-reset - String
+*
+* @throws:
+* AuthenticationError
+* */
+app.get("/user/password/reset/token", middleware.authenticateOnce, (request, response) => {
+
+    response.header("x-reset", request.token).send();
+    utils.logInfo(200);
+
+});
+
+/*
+* Update the password
+*
+* @params:
+* password - String
+*
+* @returns:
+* user - Object
+* @headers: x-auth - String
+*
+* @throws:
+* AuthenticationError
+* ValidationError
+* */
+app.put("/user/password/reset", middleware.authenticateReset, (request, response) => {
+
+    let password = request.body.password;
+
+    if(password) {
+
+        let user = request.user;
+        user.password = password;
+        user.modifiedOn = _.now();
+        user.tokens = [];
+
+        user.createToken("auth")
+            .then((token) => {
+                let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
+                response.header("x-auth", token).send(userResponse);
+                utils.logInfo(200, userResponse);
+            })
+            .catch((error) => {
+                let errorResponse = exception(error);
+                response.status(errorResponse.status).send(errorResponse);
+            })
+
+    } else {
+        let errorResponse = exception({
+            name: "ValidationError",
+            message: "Path 'password' is required"
+        });
+        response.status(errorResponse.status).send(errorResponse);
+    }
 
 });
 

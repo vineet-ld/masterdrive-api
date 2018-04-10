@@ -1,3 +1,5 @@
+const _ = require("lodash");
+
 const utils = require("./utils");
 const exception = require("./errors");
 const User = require("./../models/user-model");
@@ -35,7 +37,7 @@ let middleware = (() => {
         authenticate: (request, response, next) => {
             let token = request.header("x-auth");
 
-            User.findByToken(token)
+            User.findByToken(token, "auth")
                 .then((user) => {
                     if(!user) {
                         return Promise.reject({
@@ -50,7 +52,75 @@ let middleware = (() => {
                 .catch((error) => {
                     let errorResponse = exception(error);
                     response.status(errorResponse.status).send(errorResponse);
+                });
+        },
+
+        /*
+        * Method to check if incoming request has valid temporary token and generate a reset token
+        *
+        * @params:
+        * request - HttpRequest Object
+        * response - HttpResponse Object
+        * next - Callback Fn
+        *
+        * @throws:
+        * AuthenticationError
+        * */
+        authenticateOnce: (request, response, next) => {
+
+            let token = request.header("x-code");
+
+            User.findByToken(token, "temp")
+                .then((user) => {
+                    if(!user) {
+                        return Promise.reject({
+                            name: "JsonWebTokenError",
+                            message: "invalid token"
+                        });
+                    }
+                    user.tokens = _.remove(user.tokens, (tokenObj) => tokenObj.access !== "temp");
+                    user.createToken("reset")
+                        .then((token) => {
+                            request.token = token;
+                            next();
+                        })
                 })
+                .catch((error) => {
+                    let errorResponse = exception(error);
+                    response.status(errorResponse.status).send(errorResponse);
+                });
+
+        },
+
+        /*
+        * Method to check if incoming request has valid reset token
+        *
+        * @params:
+        * request - HttpRequest Object
+        * response - HttpResponse Object
+        * next - Callback Fn
+        *
+        * @throws:
+        * AuthenticationError
+        * */
+        authenticateReset: (request, response, next) => {
+
+            let token = request.header("x-reset");
+            User.findByToken(token, "reset")
+                .then((user) => {
+                    if(!user){
+                        return Promise.reject({
+                            name: "JsonWebTokenError",
+                            message: "invalid token"
+                        });
+                    }
+                    request.user = user;
+                    next();
+                })
+                .catch((error) => {
+                    let errorResponse = exception(error);
+                    response.status(errorResponse.status).send(errorResponse);
+                });
         }
 
     };

@@ -24,6 +24,12 @@ const seed = (() => {
         }, {
             access: "auth",
             token: jwt.sign({_id: new ObjectID()}, process.env.JWT_SECRET)
+        }, {
+            access: "temp",
+            token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
+        }, {
+            access: "reset",
+            token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
         }]
     };
 
@@ -37,12 +43,8 @@ const seed = (() => {
         * */
         clearUsers: (done) => {
             User.remove({})
-                .then(() => {
-                    done();
-                })
-                .catch((error) => {
-                    done(error);
-                })
+                .then(() => done())
+                .catch((error) => done());
         },
 
         /*

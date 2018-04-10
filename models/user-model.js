@@ -57,14 +57,16 @@ let UserSchema = new mongoose.Schema({
 });
 
 /*
-* Model method to create an authentication token
+* Model method to create a token
 *
-* @return: Promise with the auth token
+* @params:
+* access - String auth|temp|reset
+*
+* @return: Promise with the token
 * */
-UserSchema.methods.createAuthToken = function() {
+UserSchema.methods.createToken = function(access) {
 
     let user = this;
-    let access = "auth";
     let token = jwt.sign({
         _id: user._id.toHexString()
     }, process.env.JWT_SECRET).toString();
@@ -72,12 +74,8 @@ UserSchema.methods.createAuthToken = function() {
     user.tokens.push({access, token});
 
     return user.save()
-        .then(() => {
-            return token;
-        })
-        .catch((error) => {
-            utils.logError(500, error);
-        })
+        .then(() => token)
+        .catch((error) => Promise.reject(error));
 
 };
 
@@ -90,7 +88,7 @@ UserSchema.methods.createAuthToken = function() {
 UserSchema.methods.removeAuthTokens = function() {
 
     let user = this;
-    user.tokens = user.tokens.filter((tokenObj) => tokenObj.access !== "auth");
+    user.tokens = _.remove(user.tokens, (tokenObj) => tokenObj.access !== "auth");
 
     return user.save();
 
@@ -110,7 +108,10 @@ UserSchema.methods.removeAuthToken = function(token) {
     let user = this;
     return user.update({
         $pull: {
-            tokens: {token}
+            tokens: {
+                token: token,
+                access: "auth"
+            }
         }
     });
 
@@ -162,7 +163,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
 * @returns:
 * Promise with user object
 * */
-UserSchema.statics.findByToken = function(token) {
+UserSchema.statics.findByToken = function(token, access) {
 
     let User = this;
     let decoded;
@@ -176,7 +177,7 @@ UserSchema.statics.findByToken = function(token) {
     return User.findOne({
         _id: decoded._id,
         "tokens.token": token,
-        "tokens.access": "auth"
+        "tokens.access": access
     });
 
 };
