@@ -34,6 +34,13 @@ This is a REST API for the MasterDrive App developed using NodeJS
 ```
 *You can also download the repo instead
 
+### Create SendGrid account
+
+* Create and account with SendGrid and signup for a subcription plan by clicking [here]
+* Create an API KEY to be used to send transaction emails
+
+[here]: https://sendgrid.com/pricing/
+
 ## Setup the project
 
 From your terminal, go to the project folder and type the following command
@@ -51,6 +58,9 @@ Following environment values need to be initialized:
 * `MONGODB_URL` 
 * `MONGODB_URL_TEST` [ URL for the database to be used for running tests ]
 * `JWT_SECRET` [ Any long random string ]
+* `SENDGRID_API_KEY`
+* `INFO_EMAIL_ID`
+* `TEST_EMAIL_ID` [Make sure this variable is only set for test and development]
 
 *Please note that the variables set in the `.env` file are only used as environment variables while running the project on `localhost`. If you are hosting this project on a remote server, you need to setup these environment variables on that machine.
 

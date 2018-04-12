@@ -21,9 +21,11 @@
   },
   "homepage": "https://github.com/vineet-ld/masterdrive-api#readme",
   "dependencies": {
+    "@sendgrid/mail": "^6.2.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
+    "handlebars": "^4.0.11",
     "jsonwebtoken": "^8.2.0",
     "lodash": "^4.17.5",
     "log4js": "^2.5.3",

@@ -1,13 +1,14 @@
 const _ = require("lodash");
 const {ObjectID} = require("mongodb");
+const validator = require("validator");
 
 const utils = require("./../utils/utils");
 const User = require("./../models/user-model");
 const middleware = require("./../utils/middleware");
 const exception = require("./../utils/errors");
+const emailClient = require("./../utils/email");
 
 const app = utils.getExpressApp();
-const logger = utils.getLogger();
 
 /*
 * Creates a new user
@@ -265,32 +266,56 @@ app.delete("/user/logout/all", middleware.authenticate, (request, response) => {
 app.post("/user/password/reset/init", (request, response) => {
 
     let email = request.body.email;
+    let redirectUrl = request.body.redirectUrl;
 
-    if(email) {
+    if(email && redirectUrl) {
 
-        User.findOne({email})
-            .then((user) => {
-                if(!user) {
-                    return Promise.reject({
-                        name: "ResourceNotFoundError"
-                    });
-                }
-                user.createToken("temp")
-                    .then((token) => {
-                        response.status(202).send();
-                        utils.logInfo(202);
-                    })
-            })
-            .catch((error) => {
-                let errorResponse = exception(error);
-                response.status(errorResponse.status).send(errorResponse);
-            })
+        if(validator.isURL(redirectUrl, {require_protocol: true})) {
+            User.findOne({email})
+                .then((user) => {
+                    if(!user) {
+                        return Promise.reject({
+                            name: "ResourceNotFoundError"
+                        });
+                    }
+                    user.createToken("temp")
+                        .then((token) => {
+                            response.status(202).send();
+                            utils.logInfo(202);
+                            emailClient.sendPasswordResetLink(user.name, email, redirectUrl, token);
+                        })
+                })
+                .catch((error) => {
+                    let errorResponse = exception(error);
+                    response.status(errorResponse.status).send(errorResponse);
+                })
+        } else {
+            let errorResponse = exception({
+                name: "ValidationError",
+                message: "path 'redirectUrl' is not valid"
+            });
+            response.status(errorResponse.status).send(errorResponse);
+        }
+
 
     } else {
-        let errorResponse = exception({
+        let error = {
             name: "ValidationError",
-            message: "path 'email' is required"
-        });
+            errors: {}
+        };
+
+        if(!email) {
+            error.errors.email = {
+                message: "Path 'email' is required"
+            }
+        }
+
+        if(!redirectUrl) {
+            error.errors.redirectUrl = {
+                message: "Path 'redirectUrl' is required"
+            }
+        }
+        let errorResponse = exception(error);
         response.status(errorResponse.status).send(errorResponse);
     }
 
@@ -345,6 +370,7 @@ app.put("/user/password/reset", middleware.authenticateReset, (request, response
                 let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
                 response.header("x-auth", token).send(userResponse);
                 utils.logInfo(200, userResponse);
+                emailClient.sendDetailsUpdatedConfirmation(user.name, user.email);
             })
             .catch((error) => {
                 let errorResponse = exception(error);

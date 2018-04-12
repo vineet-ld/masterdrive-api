@@ -520,9 +520,13 @@ describe("User Controller", () => {
         it("should generate a temp token", (done) => {
 
             let user = seed.getUser();
+            let input = {
+                email: user.email,
+                redirectUrl: "http://www.test.com"
+            };
 
             request(app).post("/user/password/reset/init")
-                .send({email: user.email})
+                .send(input)
                 .expect(202)
                 .expect((response) => {
                     expect(response.body).toEqual({});
@@ -541,7 +545,7 @@ describe("User Controller", () => {
                 });
         });
 
-        it("should return 400 status if email is missing", (done) => {
+        it("should return 400 status if email and redirect url is missing", (done) => {
 
             request(app).post("/user/password/reset/init")
                 .send()
@@ -553,10 +557,32 @@ describe("User Controller", () => {
 
         });
 
-        it("should return 404 status if user with the sent email does not exist", (done) => {
+        it("should return 400 status if redirect url is invalid", (done) => {
+
+            let input = {
+                email: seed.getUser().email,
+                redirectUrl: "invalidurl.com"
+            };
 
             request(app).post("/user/password/reset/init")
-                .send({email: "doesnotexist@test.com"})
+                .send(input)
+                .expect(400)
+                .expect((response) => {
+                    expect(response.body.type).toBe("ValidationError");
+                })
+                .end(done);
+
+        });
+
+        it("should return 404 status if user with the sent email does not exist", (done) => {
+
+            let input = {
+                email: "doesnotexist@test.com",
+                redirectUrl: "http://www.test.com"
+            };
+
+            request(app).post("/user/password/reset/init")
+                .send(input)
                 .expect(404)
                 .expect((response) => {
                     expect(response.body.type).toBe("ResourceNotFoundError");
