@@ -8,7 +8,7 @@ This is a REST API for the MasterDrive App developed using NodeJS
 
 * Download NodeJS and NPM from the following link: https://nodejs.org/en/
 * Double click the installer file and follow the instructions to complete the setup
-* Check if Node.js and NPM has been installed successfully. Type the following command in your terminal window:
+* Check if Node.js and NPM have been installed successfully. Type the following command in your terminal window:
 ```
     node -v
 ```
@@ -36,7 +36,7 @@ This is a REST API for the MasterDrive App developed using NodeJS
 
 ### Create SendGrid account
 
-* Create and account with SendGrid and signup for a subcription plan by clicking [here]
+* Create an account with SendGrid and signup for a subcription plan by clicking [here]
 * Create an API KEY to be used to send transaction emails
 
 [here]: https://sendgrid.com/pricing/
