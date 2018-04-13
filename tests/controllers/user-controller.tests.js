@@ -521,8 +521,7 @@ describe("User Controller", () => {
 
             let user = seed.getUser();
             let input = {
-                email: user.email,
-                redirectUrl: "http://www.test.com"
+                email: user.email
             };
 
             request(app).post("/user/password/reset/init")
@@ -545,7 +544,7 @@ describe("User Controller", () => {
                 });
         });
 
-        it("should return 400 status if email and redirect url is missing", (done) => {
+        it("should return 400 status if email is missing", (done) => {
 
             request(app).post("/user/password/reset/init")
                 .send()
@@ -557,28 +556,10 @@ describe("User Controller", () => {
 
         });
 
-        it("should return 400 status if redirect url is invalid", (done) => {
-
-            let input = {
-                email: seed.getUser().email,
-                redirectUrl: "invalidurl.com"
-            };
-
-            request(app).post("/user/password/reset/init")
-                .send(input)
-                .expect(400)
-                .expect((response) => {
-                    expect(response.body.type).toBe("ValidationError");
-                })
-                .end(done);
-
-        });
-
         it("should return 404 status if user with the sent email does not exist", (done) => {
 
             let input = {
-                email: "doesnotexist@test.com",
-                redirectUrl: "http://www.test.com"
+                email: "doesnotexist@test.com"
             };
 
             request(app).post("/user/password/reset/init")

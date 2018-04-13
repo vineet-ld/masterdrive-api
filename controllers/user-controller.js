@@ -267,56 +267,35 @@ app.delete("/user/logout/all", middleware.authenticate, (request, response) => {
 app.post("/user/password/reset/init", (request, response) => {
 
     let email = request.body.email;
-    let redirectUrl = request.body.redirectUrl;
+    let redirectUrl = `${process.env.FE_DOMAIN}/password/reset`;
 
-    if(email && redirectUrl) {
+    if(email) {
 
-        if(validator.isURL(redirectUrl, {require_protocol: true})) {
-            User.findOne({email})
-                .then((user) => {
-                    if(!user) {
-                        return Promise.reject({
-                            name: "ResourceNotFoundError"
-                        });
-                    }
-                    user.createToken("temp")
-                        .then((token) => {
-                            response.status(202).send();
-                            utils.logInfo(202);
-                            emailClient.sendPasswordResetLink(user.name, email, redirectUrl, token);
-                        })
-                })
-                .catch((error) => {
-                    let errorResponse = exception(error);
-                    response.status(errorResponse.status).send(errorResponse);
-                })
-        } else {
-            let errorResponse = exception({
-                name: "ValidationError",
-                message: "path 'redirectUrl' is not valid"
+        User.findOne({email})
+            .then((user) => {
+                if(!user) {
+                    return Promise.reject({
+                        name: "ResourceNotFoundError"
+                    });
+                }
+                user.createToken("temp")
+                    .then((token) => {
+                        response.status(202).send();
+                        utils.logInfo(202);
+                        emailClient.sendPasswordResetLink(user.name, email, redirectUrl, token);
+                    })
+            })
+            .catch((error) => {
+                let errorResponse = exception(error);
+                response.status(errorResponse.status).send(errorResponse);
             });
-            response.status(errorResponse.status).send(errorResponse);
-        }
 
 
     } else {
-        let error = {
+        let errorResponse = exception({
             name: "ValidationError",
-            errors: {}
-        };
-
-        if(!email) {
-            error.errors.email = {
-                message: "Path 'email' is required"
-            }
-        }
-
-        if(!redirectUrl) {
-            error.errors.redirectUrl = {
-                message: "Path 'redirectUrl' is required"
-            }
-        }
-        let errorResponse = exception(error);
+            message: "Path 'email' is required"
+        });
         response.status(errorResponse.status).send(errorResponse);
     }
 
