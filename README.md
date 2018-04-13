@@ -59,6 +59,7 @@ Following environment values need to be initialized:
 * `SENDGRID_API_KEY`
 * `INFO_EMAIL_ID`
 * `TEST_EMAIL_ID` [Make sure this variable is only set for test and development]
+* `FE_DOMAIN` 
 
 *Please note that the variables set in the `.env` file are only used as environment variables while running the project on `localhost`. If you are hosting this project on a remote server, you need to setup these environment variables on that machine.
 
