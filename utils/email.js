@@ -3,6 +3,10 @@ const fs = require("fs");
 const path = require("path");
 const Handlebars = require("handlebars");
 
+const utils = require("./utils");
+
+const logger = utils.getLogger();
+
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 let defaultRecipient = process.env.TEST_EMAIL_ID;
 
@@ -21,7 +25,10 @@ let email = (() => {
         let from = process.env.INFO_EMAIL_ID;
         let options = {from, subject, text, html};
         options.to = defaultRecipient || to;
-        sgMail.send(options);
+        sgMail.send(options)
+            .catch((error) => {
+                logger.error("Email not sent\n", error);
+            });
     };
 
     return {

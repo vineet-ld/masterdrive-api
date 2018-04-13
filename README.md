@@ -36,10 +36,8 @@ This is a REST API for the MasterDrive App developed using NodeJS
 
 ### Create SendGrid account
 
-* Create an account with SendGrid and signup for a subcription plan by clicking [here]
+* Create an account with SendGrid and signup for a subcription plan by going to: https://sendgrid.com/pricing/
 * Create an API KEY to be used to send transaction emails
-
-[here]: https://sendgrid.com/pricing/
 
 ## Setup the project
 

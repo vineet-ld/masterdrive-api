@@ -175,6 +175,7 @@ app.put("/user", middleware.authenticate, (request, response) => {
                                 let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
                                 response.header("x-auth", request.token).send(userResponse);
                                 utils.logInfo(200, userResponse);
+                                emailClient.sendDetailsUpdatedConfirmation(user.name, user.email);
                             })
                             .catch((error) => {
                                 let errorResponse = exception(error);
