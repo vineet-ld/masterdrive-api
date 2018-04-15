@@ -33,6 +33,11 @@ let UserSchema = new mongoose.Schema({
         required: true
     },
 
+    verified: {
+        type: Boolean,
+        default: false
+    },
+
     createdOn: {
         type: Number,
         default: _.now()
@@ -70,6 +75,27 @@ UserSchema.methods.createToken = function(access) {
     let token = jwt.sign({
         _id: user._id.toHexString()
     }, process.env.JWT_SECRET).toString();
+
+    user.tokens.push({access, token});
+
+    return user.save()
+        .then(() => token)
+        .catch((error) => Promise.reject(error));
+
+};
+
+/*
+* Model method to create a verification token
+*
+* @return: Promise with the token
+* */
+UserSchema.methods.createVerificationToken = function() {
+
+    let user = this;
+    let token = jwt.sign({
+        email: user.email
+    }, process.env.JWT_SECRET).toString();
+    let access = "verify";
 
     user.tokens.push({access, token});
 
@@ -155,10 +181,11 @@ UserSchema.statics.findByCredentials = function(email, password) {
 };
 
 /*
-* Schema method to get user by auth token
+* Schema method to get user by token
 *
 * @params:
 * token - String
+* access - String auth|temp|reset
 *
 * @returns:
 * Promise with user object
@@ -178,6 +205,34 @@ UserSchema.statics.findByToken = function(token, access) {
         _id: decoded._id,
         "tokens.token": token,
         "tokens.access": access
+    });
+
+};
+
+/*
+* Schema method to get user by verification token
+*
+* @params:
+* token - String
+*
+* @returns:
+* Promise with user object
+* */
+UserSchema.statics.findByVerificationToken = function(token) {
+
+    let User = this;
+    let decoded;
+
+    try {
+        decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch(error) {
+        return Promise.reject(error);
+    }
+
+    return User.findOne({
+        email: decoded.email,
+        "tokens.token": token,
+        "tokens.access": "verify"
     });
 
 };

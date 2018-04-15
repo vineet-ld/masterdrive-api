@@ -30,6 +30,9 @@ const seed = (() => {
         }, {
             access: "reset",
             token: jwt.sign({_id: userId}, process.env.JWT_SECRET)
+        }, {
+            access: "verify",
+            token: jwt.sign({email: "test.user@test.com"}, process.env.JWT_SECRET)
         }]
     };
 

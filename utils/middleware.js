@@ -79,11 +79,8 @@ let middleware = (() => {
                         });
                     }
                     user.tokens = _.remove(user.tokens, (tokenObj) => tokenObj.access !== "temp");
-                    user.createToken("reset")
-                        .then((token) => {
-                            request.token = token;
-                            next();
-                        })
+                    request.user = user;
+                    next();
                 })
                 .catch((error) => {
                     let errorResponse = exception(error);
@@ -114,6 +111,38 @@ let middleware = (() => {
                             message: "invalid token"
                         });
                     }
+                    request.user = user;
+                    next();
+                })
+                .catch((error) => {
+                    let errorResponse = exception(error);
+                    response.status(errorResponse.status).send(errorResponse);
+                });
+        },
+
+        /*
+        * Method to check if incoming request has valid verification token
+        *
+        * @params:
+        * request - HttpRequest Object
+        * response - HttpResponse Object
+        * next - Callback Fn
+        *
+        * @throws:
+        * AuthenticationError
+        * */
+        authenticateVerification: (request, response, next) => {
+
+            let token = request.header("x-verify");
+            User.findByVerificationToken(token)
+                .then((user) => {
+                    if(!user){
+                        return Promise.reject({
+                            name: "JsonWebTokenError",
+                            message: "invalid token"
+                        });
+                    }
+                    user.tokens = _.remove(user.tokens, (tokenObj) => tokenObj.access !== "verify");
                     request.user = user;
                     next();
                 })

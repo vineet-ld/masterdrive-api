@@ -42,12 +42,12 @@ let email = (() => {
         * reset_url - String url
         * token - String
         * */
-        sendPasswordResetLink: (name, recipient, reset_url, token) => {
+        sendPasswordResetLink: (name, recipient, resetUrl, token) => {
 
             let source = fs.readFileSync(path.join(__dirname, "../templates/reset-password.hbs"), "utf8");
             let template = Handlebars.compile(source);
 
-            send(recipient, "Password Reset", "Reset Password Link", template({name, reset_url, token}));
+            send(recipient, "Password Reset", "Reset Password Link", template({name, resetUrl, token}));
         },
 
         /*
@@ -63,6 +63,24 @@ let email = (() => {
             let template = Handlebars.compile(source);
 
             send(recipient, "Information Update Confirmation", "Information Update Confirmation", template({name}));
+        },
+
+        /*
+        * Method to send welcome email
+        *
+        * @params:
+        * name - String
+        * recipient - String email
+        * verificationUrl - String url
+        * token - String
+        * */
+        sendWelcomeEmail: (name, recipient, verificationUrl, token) => {
+
+            let source = fs.readFileSync(path.join(__dirname, "../templates/welcome.hbs"), "utf8");
+            let template = Handlebars.compile(source);
+
+            send(recipient, "Welcome to MasterDrive", "Welcome to MasterDrive", template({name, verificationUrl, token}));
+
         }
 
     };

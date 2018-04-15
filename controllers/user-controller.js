@@ -39,6 +39,40 @@ app.post("/user", (request, response) => {
             let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
             response.header("x-auth", token).status(201).send(userResponse);
             utils.logInfo(201, userResponse);
+            return user.createVerificationToken();
+        })
+        .then((token) => {
+            let verificationUrl = `${process.env.FE_DOMAIN}/verify`;
+            emailClient.sendWelcomeEmail(user.name, user.email, verificationUrl, token);
+        })
+        .catch((error) => {
+            let errorResponse = exception(error);
+            response.status(errorResponse.status).send(errorResponse);
+        })
+
+});
+
+/*
+*
+* Verifies the user email
+*
+* @params:
+* @header - x-verify - String
+*
+* @returns:
+* user - Object
+*
+* @throws:
+* AuthenticationError
+* */
+app.put("/user/verify", middleware.authenticateVerification, (request, response) => {
+
+    request.user.verified = true;
+    request.user.save()
+        .then((user) => {
+            let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
+            response.send(userResponse);
+            utils.logInfo(200, userResponse);
         })
         .catch((error) => {
             let errorResponse = exception(error);
@@ -315,8 +349,15 @@ app.post("/user/password/reset/init", (request, response) => {
 * */
 app.get("/user/password/reset/token", middleware.authenticateOnce, (request, response) => {
 
-    response.header("x-reset", request.token).send();
-    utils.logInfo(200);
+    request.user.createToken("reset")
+        .then((token) => {
+            response.header("x-reset", token).send();
+            utils.logInfo(200);
+        })
+        .catch((error) => {
+            let errorResponse = exception(error);
+            response.status(errorResponse.status).send(errorResponse);
+        });
 
 });
 

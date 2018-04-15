@@ -46,11 +46,13 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).not.toBeNull();
                             expect(user.password).not.toBe(data.password);
-                            expect(user.tokens.length).toBe(1);
+                            expect(user.verified).toBeFalsy();
+                            expect(user.tokens.length).toBe(2);
                             expect(user.tokens[0]).toMatchObject({
                                 access: "auth",
                                 token: response.headers["x-auth"]
                             });
+                            expect(user.tokens[1].access).toBe("verify");
                             done();
                         })
                         .catch((error) => done(error));
@@ -142,6 +144,69 @@ describe("User Controller", () => {
 
     });
 
+    describe("PUT /user/verify", () => {
+
+        it("should verify the user", (done) => {
+
+            let ogUser = seed.getUser();
+
+            request(app).put("/user/verify")
+                .set("x-verify", ogUser.tokens[4].token)
+                .expect(200)
+                .expect((response) => {
+                    let user = response.body;
+                    expect(user._id).toBeDefined();
+                    expect(user.name).toBe(ogUser.name);
+                    expect(user.email).toBe(ogUser.email);
+                    expect(typeof user.createdOn).toBe("number");
+                    expect(user.modifiedOn).toBeNull();
+                    expect(user.password).toBeUndefined();
+                    expect(user.tokens).toBeUndefined();
+                })
+                .end((error) => {
+                    if(error) {
+                        return done(error);
+                    }
+                    User.findById(ogUser._id)
+                        .then((user) => {
+                            expect(user).not.toBeNull();
+                            expect(user.verified).toBeTruthy();
+                            expect(user.tokens.length).toBe(4);
+                            done();
+                        })
+                        .catch((error) => done(error));
+                })
+
+        });
+
+        it("should return a 401 if the verify token is invalid", (done) => {
+
+            request(app).put("/user/verify")
+                .set("x-verify", "invalidverificationtoken")
+                .expect(401)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("AuthenticationError");
+                })
+                .end(done);
+
+        });
+
+        it("should return a 401 if the auth token is absent", (done) => {
+
+            request(app).put("/user/verify")
+                .send()
+                .expect(401)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("AuthenticationError");
+                })
+                .end(done);
+
+        });
+
+    });
+
     describe("POST /user/login", () => {
 
         it("should sign in a user", (done) => {
@@ -170,8 +235,8 @@ describe("User Controller", () => {
                     User.findOne({email: "test.user@test.com"})
                         .then((user) => {
                             expect(user).toBeDefined();
-                            expect(user.tokens.length).toBe(5);
-                            expect(user.tokens[4]).toMatchObject({
+                            expect(user.tokens.length).toBe(6);
+                            expect(user.tokens[5]).toMatchObject({
                                 access: "auth",
                                 token: response.headers["x-auth"]
                             });
@@ -202,7 +267,7 @@ describe("User Controller", () => {
                     User.findOne({email: "test.user@test.com"})
                         .then((user) => {
                             expect(user).toBeDefined();
-                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens.length).toBe(5);
                             done();
                         })
                         .catch((error) => done(error));
@@ -314,8 +379,8 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).not.toBeNull();
                             expect(user.name).toBe(newDetails.name);
-                            expect(user.tokens.length).toBe(3);
-                            expect(user.tokens[2]).toMatchObject({
+                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens[3]).toMatchObject({
                                 token: response.headers["x-auth"],
                                 access: "auth"
                             });
@@ -357,7 +422,7 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).not.toBeNull();
                             expect(user.name).toBe(newDetails.name);
-                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens.length).toBe(5);
                             expect(user.tokens[0]).toMatchObject({
                                 token: oldUser.tokens[0].token,
                                 access: "auth"
@@ -392,11 +457,7 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).not.toBeNull();
                             expect(user.name).toBe(oldUser.name);
-                            expect(user.tokens.length).toBe(4);
-                            expect(user.tokens[0]).toMatchObject({
-                                token: oldUser.tokens[0].token,
-                                access: "auth"
-                            });
+                            expect(user.tokens.length).toBe(5);
                             done();
                         })
                         .catch((error) => done(error));
@@ -441,11 +502,7 @@ describe("User Controller", () => {
                         .then((user) => {
                             expect(user).not.toBeNull();
                             expect(user.name).toBe(oldUser.name);
-                            expect(user.tokens.length).toBe(4);
-                            expect(user.tokens[0]).toMatchObject({
-                                token: oldUser.tokens[0].token,
-                                access: "auth"
-                            });
+                            expect(user.tokens.length).toBe(5);
                             done();
                         })
                         .catch((error) => done(error));
@@ -473,7 +530,7 @@ describe("User Controller", () => {
                     }
                     User.findById(user._id)
                         .then((userRes) => {
-                            expect(userRes.tokens.length).toBe(3);
+                            expect(userRes.tokens.length).toBe(4);
                             expect(userRes.tokens[0]).not.toMatchObject({
                                 token: user.tokens[0].token,
                                 access: "auth"
@@ -505,7 +562,15 @@ describe("User Controller", () => {
                     }
                     User.findById(user._id)
                         .then((user) => {
-                            expect(user.tokens.length).toBe(2);
+                            expect(user.tokens.length).toBe(3);
+                            expect(user.tokens[0]).not.toMatchObject({
+                                token: user.tokens[0].token,
+                                access: "auth"
+                            });
+                            expect(user.tokens[1]).not.toMatchObject({
+                                token: user.tokens[1].token,
+                                access: "auth"
+                            });
                             done();
                         })
                         .catch((error) => done(error));
@@ -536,8 +601,8 @@ describe("User Controller", () => {
                     }
                     User.findById(user._id)
                         .then((user) => {
-                            expect(user.tokens.length).toBe(5);
-                            expect(user.tokens[4].access).toBe("temp");
+                            expect(user.tokens.length).toBe(6);
+                            expect(user.tokens[5].access).toBe("temp");
                             done();
                         })
                         .catch((error) => done(error));
@@ -593,9 +658,9 @@ describe("User Controller", () => {
                     }
                     User.findById(user._id)
                         .then((user) => {
-                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens.length).toBe(5);
                             expect(user.tokens[2].access).not.toBe("temp");
-                            expect(user.tokens[3]).toMatchObject({
+                            expect(user.tokens[4]).toMatchObject({
                                 token: response.headers["x-reset"],
                                 access: "reset"
                             });
@@ -688,7 +753,7 @@ describe("User Controller", () => {
                     User.findByCredentials(user.email, user.password)
                         .then((user) => {
                             expect(user).not.toBeNull();
-                            expect(user.tokens.length).toBe(4);
+                            expect(user.tokens.length).toBe(5);
                             expect(user.password).toBeDefined();
                             done();
                         })
