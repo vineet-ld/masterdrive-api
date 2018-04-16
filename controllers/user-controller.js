@@ -128,7 +128,19 @@ app.post("/user/login", (request, response) => {
         User.findByCredentials(requestBody.email, requestBody.password)
             .then((userObj) => {
                 user = userObj;
-                return user.createToken("auth");
+                if(user.verified) {
+                    return user.createToken("auth");
+                } else {
+                    user.createVerificationToken()
+                        .then((token) => {
+                            let verificationUrl = `${process.env.FE_DOMAIN}/verify`;
+                            emailClient.sendVerificationEmail(user.name, user.email, verificationUrl, token);
+                        });
+                    return Promise.reject({
+                        name: "AuthorizationError",
+                        message: "User is not verified"
+                    });
+                }
             })
             .then((token) => {
                 let userResponse = _.pick(user, ["_id", "name", "email", "createdOn", "modifiedOn"]);

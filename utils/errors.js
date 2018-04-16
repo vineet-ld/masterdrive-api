@@ -52,6 +52,12 @@ let exception = function(error) {
         errorResponse.status = 401;
         errorResponse.messages.push(error.message || "Invalid user credentials");
 
+    } else if(error && error.name === "AuthorizationError") {
+
+        errorResponse.type = "AuthorizationError";
+        errorResponse.status = 403;
+        errorResponse.messages.push(error.message || "Access is denied");
+
     } else if(error && error.name === "ResourceNotFoundError") {
 
         errorResponse.type = "ResourceNotFoundError";

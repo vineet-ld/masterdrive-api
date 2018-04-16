@@ -79,7 +79,33 @@ let email = (() => {
             let source = fs.readFileSync(path.join(__dirname, "../templates/welcome.hbs"), "utf8");
             let template = Handlebars.compile(source);
 
-            send(recipient, "Welcome to MasterDrive", "Welcome to MasterDrive", template({name, verificationUrl, token}));
+            send(recipient, "Welcome to MasterDrive", "Welcome to MasterDrive", template({
+                name,
+                verificationUrl,
+                token
+            }));
+
+        },
+
+        /*
+        * Method to send verification email
+        *
+        * @params:
+        * name - String
+        * recipient - String email
+        * verificationUrl - String url
+        * token - String
+        * */
+        sendVerificationEmail: (name, recipient, verificationUrl, token) => {
+
+            let source = fs.readFileSync(path.join(__dirname, "../templates/verify-user.hbs"), "utf8");
+            let template = Handlebars.compile(source);
+
+            send(recipient, "Please verify your email", "Please verify your email", template({
+                name,
+                verificationUrl,
+                token
+            }));
 
         }
 

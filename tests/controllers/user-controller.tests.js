@@ -10,7 +10,6 @@ const seed = require("../seed");
 const app = utils.getExpressApp();
 
 beforeEach(seed.addUser);
-afterEach(seed.clearUsers);
 
 describe("User Controller", () => {
 
@@ -39,7 +38,7 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findOne({email: data.email})
@@ -77,7 +76,7 @@ describe("User Controller", () => {
                     expect(error.messages).toBeDefined();
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findOne({email: data.email})
@@ -108,7 +107,7 @@ describe("User Controller", () => {
                     expect(error.messages).toBeDefined();
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findOne({email: data.email})
@@ -164,7 +163,7 @@ describe("User Controller", () => {
                     expect(user.tokens).toBeUndefined();
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findById(ogUser._id)
@@ -229,7 +228,7 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findOne({email: "test.user@test.com"})
@@ -261,7 +260,7 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).toBeUndefined();
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findOne({email: "test.user@test.com"})
@@ -288,6 +287,35 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).toBeUndefined();
                 })
                 .end(done);
+
+        });
+
+        it("should return 403 if user is not verified", (done) => {
+
+            request(app).post("/user/login")
+                .send({
+                    email: "unverified.user@test.com",
+                    password: "123456"
+                })
+                .expect(403)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("AuthorizationError");
+                    expect(response.headers["x-auth"]).toBeUndefined();
+                })
+                .end((error) => {
+                    if (error) {
+                        return done(error);
+                    }
+                    User.findOne({email: "unverified.user@test.com"})
+                        .then((user) => {
+                            expect(user).toBeDefined();
+                            expect(user.tokens.length).toBe(1);
+                            expect(user.tokens[0].access).toBe("verify");
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
 
         });
 
@@ -372,7 +400,7 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).not.toBe(oldUser.tokens[0].token);
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findByCredentials(oldUser.email, newDetails.password)
@@ -415,7 +443,7 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).toBe(oldUser.tokens[0].token);
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findByCredentials(oldUser.email, oldUser.password)
@@ -450,7 +478,7 @@ describe("User Controller", () => {
                     expect(response.body).toEqual({});
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findByCredentials(oldUser.email, oldUser.password)
@@ -495,7 +523,7 @@ describe("User Controller", () => {
                     expect(error.type).toBe("ValidationError");
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findByCredentials(oldUser.email, oldUser.password)
@@ -525,7 +553,7 @@ describe("User Controller", () => {
                     expect(response.body).toEqual({});
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findById(user._id)
@@ -557,7 +585,7 @@ describe("User Controller", () => {
                     expect(response.body).toEqual({});
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findById(user._id)
@@ -596,7 +624,7 @@ describe("User Controller", () => {
                     expect(response.body).toEqual({});
                 })
                 .end((error) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findById(user._id)
@@ -652,8 +680,8 @@ describe("User Controller", () => {
                     expect(response.headers["x-reset"]).toBeDefined();
                     expect(response.body).toEqual({});
                 })
-                .end((error, response) =>{
-                    if(error) {
+                .end((error, response) => {
+                    if (error) {
                         return done(error);
                     }
                     User.findById(user._id)
@@ -717,7 +745,7 @@ describe("User Controller", () => {
                     expect(response.headers["x-auth"]).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findByCredentials(oldUser.email, "changedpassword")
@@ -747,7 +775,7 @@ describe("User Controller", () => {
                     expect(response.body.type).toBe("ValidationError");
                 })
                 .end((error, response) => {
-                    if(error) {
+                    if (error) {
                         return done(error);
                     }
                     User.findByCredentials(user.email, user.password)

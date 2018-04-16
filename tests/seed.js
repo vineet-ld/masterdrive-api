@@ -17,6 +17,7 @@ const seed = (() => {
         name: "Test User",
         email: "test.user@test.com",
         password: "123456",
+        verified: true,
         createdOn: _.now(),
         tokens: [{
             access: "auth",
@@ -36,6 +37,15 @@ const seed = (() => {
         }]
     };
 
+    let user2 = {
+        _id: new ObjectID(),
+        name: "Test User",
+        email: "unverified.user@test.com",
+        password: "123456",
+        verified: false,
+        createdOn: _.now()
+    };
+
     return {
 
         /*
@@ -44,11 +54,11 @@ const seed = (() => {
         * @params:
         * done - Callback Fn
         * */
-        clearUsers: (done) => {
+        /*clearUsers: (done) => {
             User.remove({})
                 .then(() => done())
                 .catch((error) => done());
-        },
+        },*/
 
         /*
         * Method to add a sample user
@@ -57,6 +67,21 @@ const seed = (() => {
         * done - Callback Fn
         * */
         addUser: (done) => {
+
+            User.remove({})
+                .then(() => {
+                    let promise1 = new User(user).save();
+                    let promise2 = new User(user2).save();
+                    return Promise.all([promise1, promise2]);
+                })
+                .then(() => done());
+
+        },
+
+        addUnverifiedUser: (done) => {
+            user.verified = false;
+            user._id = new ObjectID();
+            user.email = "unverified.user@test.com";
             let userObj = new User(user);
             userObj.save()
                 .then(() => done())
