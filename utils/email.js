@@ -25,10 +25,13 @@ let email = (() => {
         let from = process.env.INFO_EMAIL_ID;
         let options = {from, subject, text, html};
         options.to = defaultRecipient || to;
-        sgMail.send(options)
-            .catch((error) => {
-                logger.error("Email not sent\n", error);
-            });
+        if (process.env.EMAIL_NOTIFICATIONS !== "off" && !(process.env.NODE_ENV === "test"
+                && process.env.EMAIL_NOTIFICATIONS === "off for tests")) {
+            sgMail.send(options)
+                .catch((error) => {
+                    logger.error("Email not sent\n", error);
+                });
+        }
     };
 
     return {
@@ -105,6 +108,25 @@ let email = (() => {
                 name,
                 verificationUrl,
                 token
+            }));
+
+        },
+
+        /*
+        * Method to send new account added notification
+        *
+        * @params:
+        * name - String
+        * recipient - String email
+        * */
+        sendAccountAddedEmail: (name, recipient, accountType) => {
+
+            let source = fs.readFileSync(path.join(__dirname, "../templates/account-added.hbs"), "utf8");
+            let template = Handlebars.compile(source);
+
+            send(recipient, "New Account Added", "New Account Added", template({
+                name,
+                accountType
             }));
 
         }

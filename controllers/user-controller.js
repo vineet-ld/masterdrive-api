@@ -95,6 +95,7 @@ app.put("/user/verify", middleware.authenticateVerification, (request, response)
 * @throws
 * ValidationError
 * AuthenticationError
+* AuthorizationError
 * */
 app.post("/user/login", (request, response) => {
 

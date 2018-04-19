@@ -9,12 +9,22 @@ let utils = (() => {
 
     let app;
     let logger;
+    const ACCOUNT_TYPES = new Set(["GOOGLE_DRIVE", "DROPBOX", "ONE_DRIVE"]);
 
     app = express();
     app.use(bodyParser.json());
 
     logger = log4js.getLogger();
     logger.level = process.env.LOG_LEVEL;
+
+    mongoose.Promise = global.Promise;
+    mongoose.connect(process.env.MONGODB_URL)
+        .then((data) => {
+            logger.info(`Connected to MongoDB at ${process.env.MONGODB_URL}`)
+        })
+        .catch((error) => {
+            logger.error(`Error while connecting to MongoDB at ${process.env.MONGODB_URL}`, error);
+        });
 
     return {
 
@@ -42,14 +52,6 @@ let utils = (() => {
         * @returns: mongoose - Object
         * */
         getMongoose: () => {
-            mongoose.Promise = global.Promise;
-            mongoose.connect(process.env.MONGODB_URL)
-                .then((data) => {
-                    logger.info(`Connected to MongoDB at ${process.env.MONGODB_URL}`)
-                })
-                .catch((error) => {
-                    logger.error(`Error while connecting to MongoDB at ${process.env.MONGODB_URL}`, error);
-                });
             return mongoose;
         },
 
@@ -89,6 +91,19 @@ let utils = (() => {
                 }
 
             }
+        },
+
+        /*
+        * Method to check if the account type is valid
+        *
+        * @params:
+        * accountType - String
+        *
+        * @return
+        * true if valid accountType or else false
+        * */
+        isValidAccount: (accountType) => {
+            return ACCOUNT_TYPES.has(accountType);
         }
 
     };

@@ -11,6 +11,7 @@ app.get("/test", (request, response) => {
 });
 
 require("./controllers/user-controller");
+require("./controllers/account-controller");
 
 /* Setting express to listen to port 3002 */
 app.listen(process.env.PORT, () => {

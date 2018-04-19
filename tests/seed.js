@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const _ = require("lodash");
 
 const User = require("./../models/user-model");
+const Account = require("./../models/account-model");
 const utils = require("./../utils/utils");
 
 const app = utils.getExpressApp();
@@ -12,7 +13,7 @@ const seed = (() => {
 
     let userId = new ObjectID();
 
-    let user = {
+    let user1 = {
         _id: userId,
         name: "Test User",
         email: "test.user@test.com",
@@ -46,19 +47,17 @@ const seed = (() => {
         createdOn: _.now()
     };
 
-    return {
+    let account = {
+        _id: new ObjectID(),
+        name: "Test Account",
+        type: "TEST_DRIVE",
+        key: null,
+        _owner: user1._id,
+        createdOn: _.now(),
+        modifiedOn: null
+    };
 
-        /*
-        * Method to clear the user table
-        *
-        * @params:
-        * done - Callback Fn
-        * */
-        /*clearUsers: (done) => {
-            User.remove({})
-                .then(() => done())
-                .catch((error) => done());
-        },*/
+    return {
 
         /*
         * Method to add a sample user
@@ -70,22 +69,12 @@ const seed = (() => {
 
             User.remove({})
                 .then(() => {
-                    let promise1 = new User(user).save();
+                    let promise1 = new User(user1).save();
                     let promise2 = new User(user2).save();
                     return Promise.all([promise1, promise2]);
                 })
                 .then(() => done());
 
-        },
-
-        addUnverifiedUser: (done) => {
-            user.verified = false;
-            user._id = new ObjectID();
-            user.email = "unverified.user@test.com";
-            let userObj = new User(user);
-            userObj.save()
-                .then(() => done())
-                .catch((error) => done());
         },
 
         /* Method to get the user
@@ -94,7 +83,21 @@ const seed = (() => {
         * user - Object
         * */
         getUser: () => {
-            return user;
+            return user1;
+        },
+
+        /*
+        * Method to clear the accounts
+        *
+        * @params:
+        * done - Callback Fn
+        * */
+        clearAccounts: (done) => {
+            Account.remove({})
+                .then(() => {
+                    return new Account(account).save();
+                })
+                .then(() => done());
         }
 
     };
