@@ -279,7 +279,7 @@ describe("Account Controller", () => {
 
         });
 
-        it("should return a 400 if account type is invalid", (done) => {
+        it("should return a 409 if account name already exists", (done) => {
 
             let data = {
                 name: "Test Account",

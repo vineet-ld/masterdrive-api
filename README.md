@@ -39,6 +39,12 @@ This is a REST API for the MasterDrive App developed using NodeJS
 * Create an account with SendGrid and signup for a subcription plan by going to: https://sendgrid.com/pricing/
 * Create an API KEY to be used to send transaction emails
 
+### Setup apps on Google Drive, One Drive and Dropbox
+
+* Sign up on all three platforms - Google Drive, One Drive and Dropbox
+* Create an app on all the three platforms.
+* Once he app is created, you will receive the `CLIENT_ID` and `CLIENT_SECRET` for the apps on each platform
+
 ## Setup the project
 
 From your terminal, go to the project folder and type the following command
@@ -59,7 +65,12 @@ Following environment values need to be initialized:
 * `SENDGRID_API_KEY`
 * `INFO_EMAIL_ID`
 * `TEST_EMAIL_ID` [Make sure this variable is only set for test and development]
+* `EMAIL_NOTIFICATIONS` [ `on | off | off for tests`]
 * `FE_DOMAIN` 
+* `GOOGLE_DRIVE_CLIENT_ID`
+* `GOOGLE_DRIVE_CLIENT_SECRET`
+* `DROPBOX_CLIENT_ID`
+* `ONE_DRIVE_CLIENT_ID`
 
 *Please note that the variables set in the `.env` file are only used as environment variables while running the project on `localhost`. If you are hosting this project on a remote server, you need to setup these environment variables on that machine.
 
