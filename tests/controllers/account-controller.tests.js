@@ -1,11 +1,11 @@
-require("./../../controllers/account-controller");
+require("../../src/controllers/account-controller");
 
 const expect = require("expect");
 const request = require("supertest");
 const _ = require("lodash");
 
-const utils = require("./../../utils/utils");
-const Account = require("./../../models/account-model");
+const utils = require("../../src/utils/utils");
+const Account = require("../../src/models/account-model");
 const seed = require("../seed");
 
 const app = utils.getExpressApp();

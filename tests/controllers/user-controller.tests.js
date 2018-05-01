@@ -1,10 +1,10 @@
-require("./../../controllers/user-controller");
+require("../../src/controllers/user-controller");
 
 const expect = require("expect");
 const request = require("supertest");
 
-const utils = require("./../../utils/utils");
-const User = require("./../../models/user-model");
+const utils = require("../../src/utils/utils");
+const User = require("../../src/models/user-model");
 const seed = require("../seed");
 
 const app = utils.getExpressApp();

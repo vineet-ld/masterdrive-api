@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const _ = require("lodash");
 
-const utils = require("./../utils/utils");
+const utils = require("../utils/utils");
 
 const mongoose = utils.getMongoose();
 

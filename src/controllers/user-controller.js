@@ -2,11 +2,11 @@ const _ = require("lodash");
 const {ObjectID} = require("mongodb");
 const validator = require("validator");
 
-const utils = require("./../utils/utils");
-const User = require("./../models/user-model");
-const middleware = require("./../utils/middleware");
-const exception = require("./../utils/errors");
-const emailClient = require("./../utils/email");
+const utils = require("../utils/utils");
+const User = require("../models/user-model");
+const middleware = require("../utils/middleware");
+const exception = require("../utils/errors");
+const emailClient = require("../utils/email");
 
 const app = utils.getExpressApp();
 

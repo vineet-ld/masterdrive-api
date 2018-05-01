@@ -1,9 +1,9 @@
 const expect = require("expect");
 
-const DriveFactory = require("./../../delegates/drive-factory");
-const GoogleDrive = require("./../../delegates/google-drive");
-const Dropbox = require("./../../delegates/dropbox");
-const OneDrive = require("./../../delegates/one-drive");
+const DriveFactory = require("../../src/delegates/drive-factory");
+const GoogleDrive = require("../../src/delegates/google-drive");
+const Dropbox = require("../../src/delegates/dropbox");
+const OneDrive = require("../../src/delegates/one-drive");
 
 describe("Drive Factory", () => {
 

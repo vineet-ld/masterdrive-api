@@ -1,6 +1,6 @@
 const _ = require("lodash");
 
-const utils = require("./../utils/utils");
+const utils = require("../utils/utils");
 
 const mongoose = utils.getMongoose();
 

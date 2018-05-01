@@ -1,11 +1,11 @@
 const _ = require("lodash");
 
-const utils = require("./../utils/utils");
-const middleware = require("./../utils/middleware");
-const DriveFactory = require("./../delegates/drive-factory");
-const Account = require("./../models/account-model");
-const exception = require("./../utils/errors");
-const emailClient = require("./../utils/email");
+const utils = require("../utils/utils");
+const middleware = require("../utils/middleware");
+const DriveFactory = require("../delegates/drive-factory");
+const Account = require("../models/account-model");
+const exception = require("../utils/errors");
+const emailClient = require("../utils/email");
 
 const app = utils.getExpressApp();
 

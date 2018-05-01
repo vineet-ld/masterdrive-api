@@ -1,6 +1,6 @@
 const expect = require("expect");
 
-const exception = require("./../../utils/errors");
+const exception = require("../../src/utils/errors");
 
 describe("Errors", () => {
 

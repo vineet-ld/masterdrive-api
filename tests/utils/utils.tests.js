@@ -1,6 +1,6 @@
 const expect = require("expect");
 
-const utils = require("./../../utils/utils");
+const utils = require("../../src/utils/utils");
 
 describe("Utils", () => {
 

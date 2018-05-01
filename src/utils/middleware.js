@@ -2,7 +2,7 @@ const _ = require("lodash");
 
 const utils = require("./utils");
 const exception = require("./errors");
-const User = require("./../models/user-model");
+const User = require("../models/user-model");
 
 const logger = utils.getLogger();
 
