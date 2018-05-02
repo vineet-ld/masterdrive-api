@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const express = require("express");
 
 const utils = require("../utils/utils");
 const middleware = require("../utils/middleware");
@@ -8,6 +9,7 @@ const exception = require("../utils/errors");
 const emailClient = require("../utils/email");
 
 const app = utils.getExpressApp();
+const router = express.Router();
 
 /*
 * Add a new drive account
@@ -25,7 +27,7 @@ const app = utils.getExpressApp();
 * AuthenticationError
 * ValidationError
 * */
-app.post("/account", middleware.authenticate, (request, response) => {
+router.post("/", middleware.authenticate, (request, response) => {
 
     let data = _.pick(request.body, ["name", "type"]);
     data._owner = request.user._id;
@@ -59,3 +61,5 @@ app.post("/account", middleware.authenticate, (request, response) => {
     }
 
 });
+
+app.use("/account", router);
