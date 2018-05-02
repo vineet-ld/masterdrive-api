@@ -4,7 +4,7 @@
   "description": "REST API for master-drive",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node src/app.js",
     "test": "export NODE_ENV=test || SET NODE_ENV=\"test\" && mocha --exit tests/**/*.tests.js"
   },
   "repository": {
