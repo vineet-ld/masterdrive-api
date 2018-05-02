@@ -11,12 +11,14 @@ const emailClient = require("../utils/email");
 const app = utils.getExpressApp();
 const router = express.Router();
 
+router.use(middleware.authenticate);
+
 /*
 * Add a new drive account
 *
 * @params:
 * name - String a name for the account
-* type - String GOOGLE_DRIVE
+* type - String GOOGLE_DRIVE | DROPBOX | ONE_DRIVE
 * @headers: x-auth - String
 *
 * @returns:
@@ -27,7 +29,7 @@ const router = express.Router();
 * AuthenticationError
 * ValidationError
 * */
-router.post("/", middleware.authenticate, (request, response) => {
+router.post("/", (request, response) => {
 
     let data = _.pick(request.body, ["name", "type"]);
     data._owner = request.user._id;
