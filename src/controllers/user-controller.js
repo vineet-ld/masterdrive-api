@@ -1,6 +1,7 @@
 const _ = require("lodash");
 const {ObjectID} = require("mongodb");
 const validator = require("validator");
+const express = require("express");
 
 const utils = require("../utils/utils");
 const User = require("../models/user-model");
@@ -9,6 +10,7 @@ const exception = require("../utils/errors");
 const emailClient = require("../utils/email");
 
 const app = utils.getExpressApp();
+const router = express.Router();
 
 /*
 * Creates a new user
@@ -26,7 +28,7 @@ const app = utils.getExpressApp();
 * ValidationError
 * DuplicateEntryError
 * */
-app.post("/user", (request, response) => {
+router.post("/", (request, response) => {
 
     let requestBody = _.pick(request.body, ["name", "email", "password"]);
     let user = new User(requestBody);
@@ -65,7 +67,7 @@ app.post("/user", (request, response) => {
 * @throws:
 * AuthenticationError
 * */
-app.put("/user/verify", middleware.authenticateVerification, (request, response) => {
+router.put("/verify", middleware.authenticateVerification, (request, response) => {
 
     request.user.verified = true;
     request.user.save()
@@ -97,7 +99,7 @@ app.put("/user/verify", middleware.authenticateVerification, (request, response)
 * AuthenticationError
 * AuthorizationError
 * */
-app.post("/user/login", (request, response) => {
+router.post("/login", (request, response) => {
 
     let requestBody = _.pick(request.body, ["email", "password"]);
     let user;
@@ -169,7 +171,7 @@ app.post("/user/login", (request, response) => {
 * @throws
 * AuthenticationError
 * */
-app.get("/user/me", middleware.authenticate, (request, response) => {
+router.get("/me", middleware.authenticate, (request, response) => {
     let userResponse = _.pick(request.user, ["_id", "name", "email", "createdOn", "modifiedOn"]);
     response.send(userResponse);
     utils.logInfo(200, userResponse);
@@ -191,7 +193,7 @@ app.get("/user/me", middleware.authenticate, (request, response) => {
 * AuthenticationError
 * ValidationError
 * */
-app.put("/user", middleware.authenticate, (request, response) => {
+router.put("/", middleware.authenticate, (request, response) => {
 
     let requestBody = _.pick(request.body, ["name", "password"]);
 
@@ -264,7 +266,7 @@ app.put("/user", middleware.authenticate, (request, response) => {
 * @throws:
 * AuthenticationError
 * */
-app.delete("/user/logout", middleware.authenticate, (request, response) => {
+router.delete("/logout", middleware.authenticate, (request, response) => {
 
     request.user.removeAuthToken(request.token)
         .then(() => {
@@ -287,7 +289,7 @@ app.delete("/user/logout", middleware.authenticate, (request, response) => {
 * @throws:
 * AuthenticationError
 * */
-app.delete("/user/logout/all", middleware.authenticate, (request, response) => {
+router.delete("/logout/all", middleware.authenticate, (request, response) => {
 
     request.user.removeAuthTokens()
         .then(() => {
@@ -311,7 +313,7 @@ app.delete("/user/logout/all", middleware.authenticate, (request, response) => {
 * ValidationError
 * ResourceNotFoundError
 * */
-app.post("/user/password/reset/init", (request, response) => {
+router.post("/password/reset/init", (request, response) => {
 
     let email = request.body.email;
     let redirectUrl = `${process.env.FE_DOMAIN}/password/reset`;
@@ -360,7 +362,7 @@ app.post("/user/password/reset/init", (request, response) => {
 * @throws:
 * AuthenticationError
 * */
-app.get("/user/password/reset/token", middleware.authenticateOnce, (request, response) => {
+router.get("/password/reset/token", middleware.authenticateOnce, (request, response) => {
 
     request.user.createToken("reset")
         .then((token) => {
@@ -388,7 +390,7 @@ app.get("/user/password/reset/token", middleware.authenticateOnce, (request, res
 * AuthenticationError
 * ValidationError
 * */
-app.put("/user/password/reset", middleware.authenticateReset, (request, response) => {
+router.put("/password/reset", middleware.authenticateReset, (request, response) => {
 
     let password = request.body.password;
 
@@ -421,4 +423,4 @@ app.put("/user/password/reset", middleware.authenticateReset, (request, response
 
 });
 
-
+app.use("/user", router);
