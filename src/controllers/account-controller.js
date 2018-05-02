@@ -24,7 +24,6 @@ const app = utils.getExpressApp();
 * @throws:
 * AuthenticationError
 * ValidationError
-* DuplicateEntryError
 * */
 app.post("/account", middleware.authenticate, (request, response) => {
 

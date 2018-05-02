@@ -44,8 +44,8 @@ describe("Account Controller", () => {
                     expect(authurl).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
                     Account.findById(response.body.account._id)
                         .then((account) => {
@@ -87,8 +87,8 @@ describe("Account Controller", () => {
                     expect(authurl).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
                     Account.findById(response.body.account._id)
                         .then((account) => {
@@ -130,8 +130,8 @@ describe("Account Controller", () => {
                     expect(authurl).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
                     Account.findById(response.body.account._id)
                         .then((account) => {
@@ -163,10 +163,10 @@ describe("Account Controller", () => {
                     expect(error.type).toBe("AuthenticationError");
                 })
                 .end((error) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
-                    Account.findByType("ONE_DRIVE", user._id)
+                    Account.find({type: "ONE_DRIVE", _owner: user._id})
                         .then((account) => {
                             expect(account.length).toBe(0);
                             done();
@@ -202,13 +202,56 @@ describe("Account Controller", () => {
                     expect(authurl).toBeDefined();
                 })
                 .end((error, response) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
                     Account.findById(response.body.account._id)
                         .then((account) => {
                             expect(account).toBeDefined();
                             expect(_.startsWith(account.name, data.type)).toBeTruthy();
+                            expect(account.type).toBe(data.type);
+                            expect(account.key).toBeNull();
+                            done();
+                        })
+                        .catch((error) => done(error));
+                });
+
+        });
+
+        it("should append _1 to the account name if it already exists", (done) => {
+
+            let data = {
+                name: "Test Account",
+                type: "ONE_DRIVE"
+            };
+
+            let user = seed.getUser();
+
+            request(app).post("/account")
+                .set("x-auth", user.tokens[0].token)
+                .send(data)
+                .expect(200)
+                .expect((response) => {
+                    let account = response.body.account;
+                    expect(account._id).toBeDefined();
+                    expect(account.name).toBe(`${data.name}_1`);
+                    expect(account.type).toBe(data.type);
+                    expect(account.createdOn).toBeDefined();
+                    expect(account.modifiedOn).toBeNull();
+                    expect(account._owner).toBeUndefined();
+                    expect(account.key).toBeUndefined();
+
+                    let authurl = response.body.authUrl;
+                    expect(authurl).toBeDefined();
+                })
+                .end((error, response) => {
+                    if (error) {
+                        return done(error);
+                    }
+                    Account.findById(response.body.account._id)
+                        .then((account) => {
+                            expect(account).toBeDefined();
+                            expect(account.name).toBe(`${data.name}_1`);
                             expect(account.type).toBe(data.type);
                             expect(account.key).toBeNull();
                             done();
@@ -235,10 +278,10 @@ describe("Account Controller", () => {
                     expect(error.type).toBe("ValidationError");
                 })
                 .end((error) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
-                    Account.findByOwner(user._id)
+                    Account.find({_owner: user._id})
                         .then((account) => {
                             expect(account.length).toBe(1);
                             done();
@@ -266,43 +309,12 @@ describe("Account Controller", () => {
                     expect(error.type).toBe("ValidationError");
                 })
                 .end((error) => {
-                    if(error) {
-                        done(error);
+                    if (error) {
+                        return done(error);
                     }
-                    Account.findByOwner(user._id)
+                    Account.find({_owner: user._id})
                         .then((account) => {
                             expect(account.length).toBe(1);
-                            done();
-                        })
-                        .catch((error) => done(error));
-                });
-
-        });
-
-        it("should return a 409 if account name already exists", (done) => {
-
-            let data = {
-                name: "Test Account",
-                type: "ONE_DRIVE"
-            };
-
-            let user = seed.getUser();
-
-            request(app).post("/account")
-                .set("x-auth", user.tokens[0].token)
-                .send(data)
-                .expect(409)
-                .expect((response) => {
-                    let error = response.body;
-                    expect(error.type).toBe("DuplicateEntryError");
-                })
-                .end((error) => {
-                    if(error) {
-                        done(error);
-                    }
-                    Account.findByType("ONE_DRIVE", user._id)
-                        .then((account) => {
-                            expect(account.length).toBe(0);
                             done();
                         })
                         .catch((error) => done(error));

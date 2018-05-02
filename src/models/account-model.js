@@ -11,8 +11,7 @@ let AccountSchema = new mongoose.Schema({
         required: true,
         trim: true,
         minlength: 1,
-        maxlength: 50,
-        unique: true
+        maxlength: 50
     },
 
     type: {
@@ -43,39 +42,25 @@ let AccountSchema = new mongoose.Schema({
 });
 
 /*
-* Schema method to get accounts by type
-*
-* @params:
-* type - String
-* _owner - Number
-*
-* @returns:
-* Promise with account object
+* Method to append text so that account name is not duplicated.
+* The callback function is called before save() method is called on the model instance
 * */
-AccountSchema.statics.findByType = function(type, _owner) {
+AccountSchema.pre("save", function(next) {
 
-    let Account = this;
+    let account = this;
 
-    return Account.find({type, _owner});
+    Account.find({name: account.name, _owner: account._owner})
+        .then((accounts) => {
+            if(accounts.length > 0) {
+                account.name = `${account.name}_1`;
+            }
+            next();
+        })
+        .catch((error) => {
+            utils.logError(500, error);
+        })
 
-};
-
-/*
-* Schema method to get accounts by owner
-*
-* @params:
-* _owner - Number
-*
-* @returns:
-* Promise with account object
-* */
-AccountSchema.statics.findByOwner = function(_owner) {
-
-    let Account = this;
-
-    return Account.find({_owner});
-
-};
+});
 
 let Account = mongoose.model("Account", AccountSchema);
 
