@@ -1,6 +1,6 @@
 const Drive = require("./drive");
 
-const SCOPES = "onedrive.readwrite";
+const SCOPES = "offline_access";
 
 class OneDrive extends Drive {
 

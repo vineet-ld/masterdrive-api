@@ -23,7 +23,7 @@ class GoogleDrive extends Drive {
     * authUrl - String
     * */
     getAuthenticationUrl() {
-        return this.oAuth2Client.generateAuthUrl({scope: SCOPES});
+        return this.oAuth2Client.generateAuthUrl({access_type: 'offline', scope: SCOPES});
     }
 
 }
