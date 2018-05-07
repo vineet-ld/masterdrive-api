@@ -26,6 +26,16 @@ class GoogleDrive extends Drive {
         return this.oAuth2Client.generateAuthUrl({access_type: 'offline', scope: SCOPES});
     }
 
+    /*
+    * Method to get the authentication token
+    *
+    * @params:
+    * code - String
+    * */
+    getToken(code) {
+        return this.oAuth2Client.getToken(code);
+    }
+
 }
 
 module.exports = GoogleDrive;

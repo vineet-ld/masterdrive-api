@@ -1,5 +1,6 @@
 const _ = require("lodash");
 const express = require("express");
+const {ObjectID} = require("mongodb");
 
 const utils = require("../utils/utils");
 const middleware = require("../utils/middleware");
@@ -60,6 +61,74 @@ router.post("/", (request, response) => {
             message: "Path 'type' is missing or invalid"
         });
         response.status(errorResponse.status).send(errorResponse);
+    }
+
+});
+
+/*
+* Get and save the authorization token for the drive accounts
+*
+* @params:
+* id - String Account ID
+* code - String
+*
+* @returns:
+* account - Object
+*
+* @throws:
+* AuthenticationError
+* ValidationError
+* ResourceNotFoundError
+* */
+router.patch("/:id", (request, response) => {
+
+    let accountId = request.params.id;
+    let code = request.body.code;
+
+    if(!code) {
+        let errorResponse = exception({
+            name: "ValidationError",
+            message: "Path 'code' is required"
+        });
+        response.status(errorResponse.status).send(errorResponse);
+    } else if(!ObjectID.isValid(accountId)) {
+        let errorResponse = exception({
+            name: "ResourceNotFoundError"
+        });
+        response.status(errorResponse.status).send(errorResponse);
+    } else {
+
+        let account;
+
+        Account.findById(accountId)
+            .then((acc) => {
+                if(!acc) {
+                    return Promise.reject({name: "ResourceNotFoundError"});
+                }
+                account = acc;
+                let drive = DriveFactory.create(account.type);
+                return drive.getToken(code);
+            })
+            .then((token) => {
+                utils.getLogger().debug(token);
+                if(account.type === "GOOGLE_DRIVE") {
+                    token = token.tokens;
+                } else if(account.type === "ONE_DRIVE") {
+                    token = token.data;
+                }
+                account.key = token;
+                return account.save();
+            })
+            .then(() => {
+                account = _.pick(account, ["_id", "name", "type", "createdOn", "modifiedOn"]);
+                response.send(account);
+                utils.logInfo(200, account);
+            })
+            .catch((error) => {
+                let errorResponse = exception(error);
+                response.status(errorResponse.status).send(errorResponse);
+            });
+
     }
 
 });

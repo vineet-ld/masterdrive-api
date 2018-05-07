@@ -3,6 +3,7 @@ require("../../src/controllers/account-controller");
 const expect = require("expect");
 const request = require("supertest");
 const _ = require("lodash");
+const {ObjectID} = require("mongodb");
 
 const utils = require("../../src/utils/utils");
 const Account = require("../../src/models/account-model");
@@ -11,7 +12,7 @@ const seed = require("../seed");
 const app = utils.getExpressApp();
 
 beforeEach(seed.addUser);
-beforeEach(seed.clearAccounts);
+beforeEach(seed.addAccount);
 
 describe("Account Controller", () => {
 
@@ -319,6 +320,72 @@ describe("Account Controller", () => {
                         })
                         .catch((error) => done(error));
                 });
+
+        });
+
+    });
+
+    describe("PATCH /account/:id", () => {
+
+        /*
+        * Cannot test the ideal case since the code required for the API call is retrieved from the URl on the browser
+        * */
+
+        it("should return 400 if code is absent", (done) => {
+
+            let account = seed.getAccount();
+            let user = seed.getUser();
+            let data = {};
+
+            request(app).patch(`/account/${account._id.toHexString()}`)
+                .set("x-auth", user.tokens[0].token)
+                .send(data)
+                .expect(400)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("ValidationError");
+                })
+                .end(done);
+
+        });
+
+        it("should return 404 if account ID is invalid", (done) => {
+
+            let account = seed.getAccount();
+            let user = seed.getUser();
+            let data = {
+                code: "kfkaaks-adlnd-q0qdqnd-qdqnldqc"
+            };
+
+            request(app).patch("/account/invalidaccountid")
+                .set("x-auth", user.tokens[0].token)
+                .send(data)
+                .expect(404)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("ResourceNotFoundError");
+                })
+                .end(done);
+
+        });
+
+        it("should return 404 if account does not exist", (done) => {
+
+            let account = seed.getAccount();
+            let user = seed.getUser();
+            let data = {
+                code: "kfkaaks-adlnd-q0qdqnd-qdqnldqc"
+            };
+
+            request(app).patch(`/account/${new ObjectID().toHexString()}`)
+                .set("x-auth", user.tokens[0].token)
+                .send(data)
+                .expect(404)
+                .expect((response) => {
+                    let error = response.body;
+                    expect(error.type).toBe("ResourceNotFoundError");
+                })
+                .end(done);
 
         });
 

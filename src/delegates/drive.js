@@ -12,6 +12,13 @@ class Drive {
         throw new Error("Cannot make a call to the abstract method. Method needs to be implemented");
     }
 
+    /*
+    * Abstract method. Needs to be implemented in sub-clases
+    * */
+    getToken(code) {
+        throw new Error("Cannot make a call to the abstract method. Method needs to be implemented");
+    }
+
 }
 
 module.exports = Drive;

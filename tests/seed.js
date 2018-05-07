@@ -92,12 +92,21 @@ const seed = (() => {
         * @params:
         * done - Callback Fn
         * */
-        clearAccounts: (done) => {
+        addAccount: (done) => {
             Account.remove({})
                 .then(() => {
                     return new Account(account).save();
                 })
                 .then(() => done());
+        },
+
+        /* Method to get the account
+        *
+        * @returns:
+        * account - Object
+        * */
+        getAccount: () => {
+            return account;
         }
 
     };

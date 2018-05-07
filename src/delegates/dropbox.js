@@ -23,6 +23,16 @@ class Dropbox extends Drive {
         return this.dbx.getAuthenticationUrl(`${process.env.FE_DOMAIN}/dropbox/permission`);
     }
 
+    /*
+    * Method to get the authentication token
+    *
+    * @params:
+    * code - String
+    * */
+    getToken(code) {
+        return Promise.resolve({accessToken: code});
+    }
+
 }
 
 module.exports = Dropbox;
