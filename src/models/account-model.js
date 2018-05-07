@@ -52,7 +52,7 @@ AccountSchema.pre("save", function(next) {
     Account.find({name: account.name, _owner: account._owner})
         .then((accounts) => {
             if(accounts.length === 1 && accounts[0]._id.toHexString() !== account._id.toHexString()) {
-                account.name = `${account.name}_1`;
+                account.name = `${account.name}_${_.now()}`;
             }
             next();
         })

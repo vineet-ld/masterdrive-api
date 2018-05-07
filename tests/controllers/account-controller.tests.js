@@ -219,7 +219,7 @@ describe("Account Controller", () => {
 
         });
 
-        it("should append _1 to the account name if it already exists", (done) => {
+        it("should append a timestamp to the account name if it already exists", (done) => {
 
             let data = {
                 name: "Test Account",
@@ -235,7 +235,8 @@ describe("Account Controller", () => {
                 .expect((response) => {
                     let account = response.body.account;
                     expect(account._id).toBeDefined();
-                    expect(account.name).toBe(`${data.name}_1`);
+                    expect(account.name).not.toBe(data.name);
+                    expect(_.startsWith(account.name, data.name)).toBeTruthy();
                     expect(account.type).toBe(data.type);
                     expect(account.createdOn).toBeDefined();
                     expect(account.modifiedOn).toBeNull();
@@ -252,7 +253,8 @@ describe("Account Controller", () => {
                     Account.findById(response.body.account._id)
                         .then((account) => {
                             expect(account).toBeDefined();
-                            expect(account.name).toBe(`${data.name}_1`);
+                            expect(account.name).not.toBe(data.name);
+                            expect(_.startsWith(account.name, data.name)).toBeTruthy();
                             expect(account.type).toBe(data.type);
                             expect(account.key).toBeNull();
                             done();
