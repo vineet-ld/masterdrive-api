@@ -11,8 +11,10 @@ const emailClient = require("../utils/email");
 
 const app = utils.getExpressApp();
 const router = express.Router();
+const router2 = express.Router();
 
 router.use(middleware.authenticate);
+router2.use(middleware.authenticate);
 
 /*
 * Add a new drive account
@@ -71,6 +73,7 @@ router.post("/", (request, response) => {
 * @params:
 * id - String Account ID
 * code - String
+* @headers: x-auth - String
 *
 * @returns:
 * account - Object
@@ -132,4 +135,35 @@ router.patch("/:id", (request, response) => {
 
 });
 
+/*
+* Get all accounts for the user
+*
+* @params:
+* @headers: x-auth - String
+*
+* @returns:
+* accounts - Array of account Object
+*
+* @throws:
+* AuthenticationError
+* */
+router2.get("/", (request, response) => {
+
+    Account.find({_owner: request.user._id.toHexString()})
+        .then((accounts) => {
+            let accountsRes = [];
+            accounts.forEach((account) => {
+                accountsRes.push(_.pick(account, ["_id", "name", "type", "createdOn", "modifiedOn"]));
+            });
+            response.send(accountsRes);
+            utils.logInfo(200, accountsRes);
+        })
+        .catch((error) => {
+            let errorResponse = exception(error);
+            response.status(errorResponse.status).send(errorResponse);
+        });
+
+});
+
 app.use("/account", router);
+app.use("/accounts", router2);

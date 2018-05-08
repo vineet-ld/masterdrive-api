@@ -51,7 +51,17 @@ const seed = (() => {
         _id: new ObjectID(),
         name: "Test Account",
         type: "TEST_DRIVE",
-        key: null,
+        key: "somefakeaccesstoken",
+        _owner: user1._id,
+        createdOn: _.now(),
+        modifiedOn: null
+    };
+
+    let account2 = {
+        _id: new ObjectID(),
+        name: "Test Account2",
+        type: "TEST_DRIVE2",
+        key: "somefakeaccesstoken2",
         _owner: user1._id,
         createdOn: _.now(),
         modifiedOn: null
@@ -73,7 +83,8 @@ const seed = (() => {
                     let promise2 = new User(user2).save();
                     return Promise.all([promise1, promise2]);
                 })
-                .then(() => done());
+                .then(() => done())
+                .catch((error) => done(error));
 
         },
 
@@ -95,9 +106,12 @@ const seed = (() => {
         addAccount: (done) => {
             Account.remove({})
                 .then(() => {
-                    return new Account(account).save();
+                    let promise1 = new Account(account).save();
+                    let promise2 = new Account(account2).save();
+                    return Promise.all([promise1, promise2]);
                 })
-                .then(() => done());
+                .then(() => done())
+                .catch((error) => done(error));
         },
 
         /* Method to get the account

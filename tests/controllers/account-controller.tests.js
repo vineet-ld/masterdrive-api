@@ -286,7 +286,7 @@ describe("Account Controller", () => {
                     }
                     Account.find({_owner: user._id})
                         .then((account) => {
-                            expect(account.length).toBe(1);
+                            expect(account.length).toBe(2);
                             done();
                         })
                         .catch((error) => done(error));
@@ -317,7 +317,7 @@ describe("Account Controller", () => {
                     }
                     Account.find({_owner: user._id})
                         .then((account) => {
-                            expect(account.length).toBe(1);
+                            expect(account.length).toBe(2);
                             done();
                         })
                         .catch((error) => done(error));
@@ -386,6 +386,26 @@ describe("Account Controller", () => {
                 .expect((response) => {
                     let error = response.body;
                     expect(error.type).toBe("ResourceNotFoundError");
+                })
+                .end(done);
+
+        });
+
+    });
+
+    describe("GET /accounts", () => {
+
+        it("should retrieve all accounts for the user", (done) => {
+
+            let user = seed.getUser();
+
+            request(app).get("/accounts")
+                .set("x-auth", user.tokens[0].token)
+                .expect(200)
+                .expect((response) => {
+                    accounts = response.body;
+                    expect(Array.isArray(accounts)).toBeTruthy();
+                    expect(accounts.length).toBe(2);
                 })
                 .end(done);
 
