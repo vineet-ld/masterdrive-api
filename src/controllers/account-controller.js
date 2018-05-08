@@ -110,13 +110,12 @@ router.patch("/:id", (request, response) => {
                 return drive.getToken(code);
             })
             .then((token) => {
-                utils.getLogger().debug(token);
                 if(account.type === "GOOGLE_DRIVE") {
                     token = token.tokens;
                 } else if(account.type === "ONE_DRIVE") {
                     token = token.data;
                 }
-                account.key = token;
+                account.key = JSON.stringify(token);
                 return account.save();
             })
             .then(() => {

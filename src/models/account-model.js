@@ -1,4 +1,5 @@
 const _ = require("lodash");
+const bcrypt = require("bcryptjs");
 
 const utils = require("../utils/utils");
 
@@ -20,7 +21,7 @@ let AccountSchema = new mongoose.Schema({
     },
 
     key: {
-        type: Object,
+        type: String,
         default: null
     },
 
@@ -51,10 +52,30 @@ AccountSchema.pre("save", function(next) {
 
     Account.find({name: account.name, _owner: account._owner})
         .then((accounts) => {
+
             if(accounts.length === 1 && accounts[0]._id.toHexString() !== account._id.toHexString()) {
                 account.name = `${account.name}_${_.now()}`;
             }
-            next();
+
+            if(account.isModified("key")) {
+                bcrypt.genSalt(10, (error, salt) => {
+                    if(!error) {
+                        bcrypt.hash(account.key, salt, (err, hash) => {
+                            if(!err) {
+                                account.key = hash;
+                                next();
+                            } else {
+                                return Promise.reject(err);
+                            }
+                        });
+                    } else {
+                        return Promise.reject(error);
+                    }
+                });
+            } else {
+                next();
+            }
+
         })
         .catch((error) => {
             utils.logError(500, error);
