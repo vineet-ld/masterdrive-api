@@ -135,6 +135,14 @@ router.patch("/:id", (request, response) => {
 
 });
 
+router.get("/:id", middleware.authenticateAccount, (request, response) => {
+
+    account = _.pick(request.account, ["_id", "name", "type", "createdOn", "modifiedOn"]);
+    response.send(account);
+    utils.logInfo(200, account);
+
+});
+
 /*
 * Get all accounts for the user
 *

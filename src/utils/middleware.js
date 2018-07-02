@@ -1,8 +1,10 @@
 const _ = require("lodash");
+const {ObjectID} = require("mongodb");
 
 const utils = require("./utils");
 const exception = require("./errors");
 const User = require("../models/user-model");
+const Account = require("../models/account-model");
 
 const logger = utils.getLogger();
 
@@ -150,6 +152,43 @@ let middleware = (() => {
                     let errorResponse = exception(error);
                     response.status(errorResponse.status).send(errorResponse);
                 });
+        },
+
+        authenticateAccount: (request, response, next) => {
+
+            let accountId = request.params.id;
+
+            if(!ObjectID.isValid(accountId)) {
+                let errorResponse = exception({
+                    name: "ResourceNotFoundError"
+                });
+                response.status(errorResponse.status).send(errorResponse);
+            } else {
+
+                Account.findById(accountId)
+                    .then((account) => {
+                        if(!account) {
+                            return Promise.reject({
+                                name: "ResourceNotFoundError"
+                            });
+                        }
+                        if(request.user._id.toHexString() === account._owner.toHexString()) {
+                            request.account = account;
+                            next();
+                        } else {
+                            return Promise.reject({
+                                name: "JsonWebTokenError",
+                                message: "Not authorized to access the resource"
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        let errorResponse = exception(error);
+                        response.status(errorResponse.status).send(errorResponse);
+                    });
+
+            }
+
         }
 
     };
